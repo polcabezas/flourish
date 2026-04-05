@@ -19,7 +19,7 @@ struct OverlayView: View {
                         .font(.flourishInput)
                         .foregroundColor(.flourishTextSecondary)
                         .padding(.horizontal, FS.overlayInputPaddingH)
-                        .padding(.top, FS.overlayInputPaddingV)
+                        .padding(.top, FS.overlayInputPaddingV + FS.xl)
                         .allowsHitTesting(false)
                 }
 
@@ -28,9 +28,10 @@ struct OverlayView: View {
                     .foregroundColor(.flourishTextPrimary)
                     .scrollContentBackground(.hidden)
                     .background(Color.flourishSurface)
-                    .frame(minHeight: FS.overlayInputMinHeight)
+                    .frame(minHeight: FS.overlayInputMinHeight, maxHeight: 200)
                     .padding(.horizontal, FS.overlayInputPaddingH - 5)
-                    .padding(.vertical, FS.overlayInputPaddingV - 2)
+                    .padding(.top, FS.overlayInputPaddingV + FS.xl)
+                    .padding(.bottom, FS.overlayInputPaddingV - 2)
                     .focused($inputFocused)
             }
             .frame(minHeight: FS.overlayInputMinHeight)
@@ -42,16 +43,23 @@ struct OverlayView: View {
                 .frame(height: FS.borderWidth)
 
             // MARK: Toolbar
-            HStack(spacing: FS.sm) {
-                ProfilePickerView(selectedProfileId: $selectedProfileId)
-                Spacer()
-                ProviderPickerView()
-                ImproveButton {
-                    Task { @MainActor in OverlayWindowController.shared.dismiss(paste: true) }
+            VStack(spacing: 0) {
+                HStack(spacing: FS.sm) {
+                    ProfilePickerView(selectedProfileId: $selectedProfileId)
+                    Spacer()
+                    ProviderPickerView()
+                    ImproveButton {
+                        Task { @MainActor in OverlayWindowController.shared.dismiss(paste: true) }
+                    }
                 }
+                .padding(.horizontal, FS.overlayToolbarPaddingH)
+                .padding(.top, FS.overlayToolbarPaddingV)
+                .padding(.bottom, FS.sm)
+
+                HintsRow(draftRestored: viewModel.draftRestored, draftSavedAt: viewModel.draftSavedAt)
+                    .padding(.horizontal, FS.overlayToolbarPaddingH)
+                    .padding(.bottom, FS.md)
             }
-            .padding(.horizontal, FS.overlayToolbarPaddingH)
-            .padding(.vertical, FS.overlayToolbarPaddingV)
             .background(Color.flourishSurfaceRaised)
         }
         .frame(width: FS.overlayWidth)
@@ -59,6 +67,68 @@ struct OverlayView: View {
         .background(Color.flourishSurface)
         .clipShape(RoundedRectangle(cornerRadius: FS.radiusLg))
         .onAppear { inputFocused = true }
+        .onChange(of: viewModel.focusTrigger) { _ in inputFocused = true }
+    }
+}
+
+// MARK: - Hints Row
+
+private struct HintsRow: View {
+    let draftRestored: Bool
+    let draftSavedAt: Date?
+
+    private static let timeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.timeStyle = .short
+        f.dateStyle = .none
+        return f
+    }()
+
+    var body: some View {
+        HStack(spacing: 0) {
+            if draftRestored {
+                HStack(spacing: 4) {
+                    Text("Draft restored")
+                        .font(.flourishMeta)
+                        .foregroundColor(.flourishTextTertiary)
+                    if let date = draftSavedAt {
+                        Text("· saved at \(Self.timeFormatter.string(from: date))")
+                            .font(.flourishMeta)
+                            .foregroundColor(.flourishTextTertiary.opacity(0.6))
+                    }
+                }
+            }
+            Spacer()
+            HStack(spacing: FS.sm) {
+                HintItem(key: "↑↓", label: "history")
+                hintDot
+                HintItem(key: "↩", label: "improve")
+                hintDot
+                HintItem(key: "esc", label: "close")
+            }
+        }
+    }
+
+    private var hintDot: some View {
+        Text("·")
+            .font(.flourishMeta)
+            .foregroundColor(.flourishTextTertiary.opacity(0.4))
+    }
+}
+
+private struct HintItem: View {
+    let key: String
+    let label: String
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Text(key)
+                .font(.flourishMeta)
+                .foregroundColor(.flourishTextTertiary)
+            Text(label)
+                .font(.flourishMeta)
+                .foregroundColor(.flourishTextTertiary.opacity(0.6))
+        }
     }
 }
 

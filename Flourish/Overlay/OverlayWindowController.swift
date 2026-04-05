@@ -45,8 +45,9 @@ final class OverlayWindowController: NSWindowController {
         // CRITICAL: Capture the previous app BEFORE showing the panel
         PasteService.shared.capturePreviousApp()
 
-        // Reset the view model for a fresh prompt
+        // Reset the view model — loads any saved draft
         viewModel.reset()
+        let hasDraft = !viewModel.promptText.isEmpty
 
         // Center the panel on the main screen
         centerOnScreen()
@@ -56,6 +57,13 @@ final class OverlayWindowController: NSWindowController {
 
         // Install Escape key monitor
         installEscapeMonitor()
+
+        // If a draft was restored, select all text so the user can type over it immediately
+        if hasDraft {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: nil)
+            }
+        }
     }
 
     func dismiss(paste: Bool) {
@@ -63,9 +71,18 @@ final class OverlayWindowController: NSWindowController {
         let text = viewModel.promptText
 
         panel.orderOut(nil)
+
+        // Persist or clear draft before reset
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if paste || trimmed.isEmpty {
+            viewModel.clearDraft()
+        } else {
+            viewModel.saveDraft(text)
+        }
+
         viewModel.reset()
 
-        if paste && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        if paste && !trimmed.isEmpty {
             LoaderWindowController.shared.show()
             Task {
                 await runLLM(text: text)
@@ -159,7 +176,7 @@ final class OverlayWindowController: NSWindowController {
     private func installEscapeMonitor() {
         escapeMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             switch event.keyCode {
-            case 53:  // Escape → dismiss without paste
+            case 53:  // Escape → dismiss (draft is auto-saved by dismiss logic)
                 self?.dismiss(paste: false)
                 return nil
             case 36, 76:  // Return / Enter (without Shift) → submit
@@ -168,6 +185,12 @@ final class OverlayWindowController: NSWindowController {
                     return nil
                 }
                 return event  // Shift+Return → allow newline in TextEditor
+            case 126:  // Up arrow → previous history entry
+                self?.viewModel.navigateUp()
+                return nil
+            case 125:  // Down arrow → next history entry (or back to draft)
+                self?.viewModel.navigateDown()
+                return nil
             default:
                 return event
             }
@@ -196,8 +219,68 @@ final class OverlayWindowController: NSWindowController {
 @MainActor
 final class OverlayViewModel: ObservableObject {
     @Published var promptText: String = ""
+    @Published var draftRestored: Bool = false
+    @Published var draftSavedAt: Date? = nil
+    /// Toggled each time the overlay opens so the view can re-apply keyboard focus.
+    @Published var focusTrigger: UUID = UUID()
+
+    private var promptHistory: [String] = []  // most recent first
+    private var historyIndex: Int = -1        // -1 = current draft
+    private var draftText: String = ""
+
+    private let draftKey     = "flourish.overlayDraft"
+    private let draftDateKey = "flourish.overlayDraftDate"
 
     func reset() {
+        let saved = UserDefaults.standard.string(forKey: draftKey) ?? ""
+        promptText = saved
+        draftRestored = !saved.isEmpty
+        draftSavedAt = UserDefaults.standard.object(forKey: draftDateKey) as? Date
+        draftText = ""
+        historyIndex = -1
+        focusTrigger = UUID()
+        loadHistory()
+    }
+
+    func saveDraft(_ text: String) {
+        let now = Date()
+        UserDefaults.standard.set(text, forKey: draftKey)
+        UserDefaults.standard.set(now, forKey: draftDateKey)
+    }
+
+    func clearDraft() {
+        UserDefaults.standard.removeObject(forKey: draftKey)
+        UserDefaults.standard.removeObject(forKey: draftDateKey)
+    }
+
+    private func loadHistory() {
+        let entries = (try? HistoryStore.shared.fetchAll(limit: 50)) ?? []
+        promptHistory = entries.map { $0.originalPrompt }
+    }
+
+    func clearInput() {
         promptText = ""
+        draftText = ""
+        historyIndex = -1
+    }
+
+    func navigateUp() {
+        guard !promptHistory.isEmpty else { return }
+
+        // Save draft before the first navigation into history
+        if historyIndex == -1 {
+            draftText = promptText
+        }
+
+        let next = historyIndex + 1
+        guard next < promptHistory.count else { return }
+        historyIndex = next
+        promptText = promptHistory[historyIndex]
+    }
+
+    func navigateDown() {
+        guard historyIndex > -1 else { return }
+        historyIndex -= 1
+        promptText = historyIndex == -1 ? draftText : promptHistory[historyIndex]
     }
 }

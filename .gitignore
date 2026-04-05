@@ -19,6 +19,7 @@ DerivedData/
 
 # Archives
 *.xcarchive
+*.dmg
 
 # Playgrounds
 timeline.xctimeline

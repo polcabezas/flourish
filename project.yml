@@ -1,0 +1,63 @@
+name: Flourish
+options:
+  bundleIdPrefix: com.personal
+  deploymentTarget:
+    macOS: "13.0"
+  xcodeVersion: "15.0"
+  groupSortPosition: top
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
+    PRODUCT_BUNDLE_IDENTIFIER: com.personal.flourish
+    PRODUCT_NAME: Flourish
+    INFOPLIST_FILE: Flourish/Info.plist
+    CODE_SIGN_ENTITLEMENTS: Flourish/Flourish.entitlements
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGNING_REQUIRED: "YES"
+    CODE_SIGN_IDENTITY: "-"
+    ENABLE_HARDENED_RUNTIME: "NO"
+    DEVELOPMENT_TEAM: ""
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: "YES"
+
+packages:
+  KeyboardShortcuts:
+    url: https://github.com/sindresorhus/KeyboardShortcuts
+    from: "2.0.0"
+  Defaults:
+    url: https://github.com/sindresorhus/Defaults
+    from: "8.0.0"
+  LaunchAtLogin:
+    url: https://github.com/sindresorhus/LaunchAtLogin
+    from: "5.0.0"
+  GRDB:
+    url: https://github.com/groue/GRDB.swift
+    from: "6.0.0"
+
+targets:
+  Flourish:
+    type: application
+    platform: macOS
+    sources:
+      - path: Flourish
+        excludes:
+          - "Info.plist"
+          - "Flourish.entitlements"
+    resources:
+      - path: Flourish/Assets.xcassets
+    dependencies:
+      - package: KeyboardShortcuts
+        product: KeyboardShortcuts
+      - package: Defaults
+        product: Defaults
+      - package: LaunchAtLogin
+        product: LaunchAtLogin
+      - package: GRDB
+        product: GRDB
+    settings:
+      base:
+        INFOPLIST_FILE: Flourish/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Flourish/Flourish.entitlements

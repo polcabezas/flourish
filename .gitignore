@@ -1,0 +1,53 @@
+# ===== Xcode =====
+
+# User-specific Xcode settings
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad/
+
+# Generated .xcodeproj (regenerate with: xcodegen generate)
+# project.yml is the source of truth — commit that instead.
+Flourish.xcodeproj/
+
+# Build output
+build/
+DerivedData/
+*.hmap
+
+# Instruments
+*.trace
+
+# Archives
+*.xcarchive
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# CocoaPods (if adopted later)
+Pods/
+Podfile.lock
+
+# Swift Package Manager resolved file
+# Commit this if you want reproducible SPM dependency resolution
+# .package.resolved
+
+# ===== macOS =====
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# ===== Editor / IDE =====
+.idea/
+*.swp
+*~
+
+# ===== Project-specific =====
+# Claude Code memory (local AI assistant state)
+.claude/
+
+# Context scratch files
+flourish-context.txt

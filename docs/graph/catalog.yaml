@@ -1,0 +1,241 @@
+---
+# Flourish Documentation Graph Catalog
+# Lists major documentation hubs and their canonical paths.
+
+hubs:
+  - id: global-index
+    path: docs/index.md
+    title: Flourish Documentation
+    description: Global entry point for all Flourish documentation
+
+  - id: app-index
+    path: docs/app/index.md
+    title: App Documentation
+    description: All documentation for the Flourish macOS application
+
+  - id: app-nav-map
+    path: docs/app/NAVIGATION_MAP.md
+    title: App Navigation Map
+    description: Persona-based reading paths and cross-link map
+
+  - id: adr-index
+    path: docs/app/adr/README.md
+    title: ADR Index
+    description: Index of all 14 Architectural Decision Records
+
+  - id: security
+    path: docs/platform/security.md
+    title: Security Reference
+    description: Threat model, data flows, and security standards
+
+  - id: book-flourish
+    path: docs/books/flourish-app.md
+    title: Book — Flourish App
+    description: Curated reading paths for four personas
+
+docs:
+  # Tutorials
+  - id: tutorial-getting-started
+    path: docs/app/tutorials/getting-started.md
+    type: tutorial
+    component: app
+
+  - id: tutorial-add-provider
+    path: docs/app/tutorials/add-your-first-provider.md
+    type: tutorial
+    component: app
+
+  - id: tutorial-custom-profile
+    path: docs/app/tutorials/create-custom-profile.md
+    type: tutorial
+    component: app
+
+  # How-To
+  - id: howto-configure-providers
+    path: docs/app/how-to/configure-providers.md
+    type: how-to
+    component: app
+
+  - id: howto-manage-profiles
+    path: docs/app/how-to/manage-profiles.md
+    type: how-to
+    component: app
+
+  - id: howto-customize-shortcut
+    path: docs/app/how-to/customize-shortcut.md
+    type: how-to
+    component: app
+
+  - id: howto-navigate-history
+    path: docs/app/how-to/navigate-history.md
+    type: how-to
+    component: app
+
+  - id: howto-custom-models
+    path: docs/app/how-to/use-custom-models.md
+    type: how-to
+    component: app
+
+  - id: howto-build-distribute
+    path: docs/app/how-to/build-and-distribute.md
+    type: how-to
+    component: app
+
+  - id: howto-add-provider
+    path: docs/app/how-to/add-new-llm-provider.md
+    type: how-to
+    component: app
+
+  # Reference
+  - id: ref-architecture
+    path: docs/app/reference/architecture-overview.md
+    type: reference
+    component: app
+
+  - id: ref-design-system
+    path: docs/app/reference/design-system.md
+    type: reference
+    component: app
+
+  - id: ref-app-settings
+    path: docs/app/reference/app-settings.md
+    type: reference
+    component: app
+
+  - id: ref-data-models
+    path: docs/app/reference/data-models.md
+    type: reference
+    component: app
+
+  - id: ref-llm-api
+    path: docs/app/reference/llm-service-api.md
+    type: reference
+    component: app
+
+  - id: ref-keyboard-shortcuts
+    path: docs/app/reference/keyboard-shortcuts.md
+    type: reference
+    component: app
+
+  - id: ref-database-schema
+    path: docs/app/reference/database-schema.md
+    type: reference
+    component: app
+
+  - id: ref-file-structure
+    path: docs/app/reference/file-structure.md
+    type: reference
+    component: app
+
+  - id: ref-build-config
+    path: docs/app/reference/build-configuration.md
+    type: reference
+    component: app
+
+  - id: ref-supported-models
+    path: docs/app/reference/supported-models.md
+    type: reference
+    component: app
+
+  # Explanation
+  - id: exp-overlay-focus
+    path: docs/app/explanation/overlay-focus-model.md
+    type: explanation
+    component: app
+
+  - id: exp-llm-abstraction
+    path: docs/app/explanation/llm-provider-abstraction.md
+    type: explanation
+    component: app
+
+  - id: exp-persistence
+    path: docs/app/explanation/data-persistence-strategy.md
+    type: explanation
+    component: app
+
+  - id: exp-workflow
+    path: docs/app/explanation/prompt-improvement-workflow.md
+    type: explanation
+    component: app
+
+  - id: exp-paste
+    path: docs/app/explanation/paste-automation.md
+    type: explanation
+    component: app
+
+  # ADRs
+  - id: adr-001
+    path: docs/app/adr/001-non-activating-panel.md
+    type: adr
+    component: app
+
+  - id: adr-002
+    path: docs/app/adr/002-xcodegen.md
+    type: adr
+    component: app
+
+  - id: adr-003
+    path: docs/app/adr/003-grdb-over-coredata.md
+    type: adr
+    component: app
+
+  - id: adr-004
+    path: docs/app/adr/004-defaults-package.md
+    type: adr
+    component: app
+
+  - id: adr-005
+    path: docs/app/adr/005-keychain-for-api-keys.md
+    type: adr
+    component: app
+
+  - id: adr-006
+    path: docs/app/adr/006-llm-service-protocol.md
+    type: adr
+    component: app
+
+  - id: adr-007
+    path: docs/app/adr/007-singleton-window-controllers.md
+    type: adr
+    component: app
+
+  - id: adr-008
+    path: docs/app/adr/008-adhoc-signing.md
+    type: adr
+    component: app
+
+  - id: adr-009
+    path: docs/app/adr/009-lsuielement.md
+    type: adr
+    component: app
+
+  - id: adr-010
+    path: docs/app/adr/010-session-stats-separate.md
+    type: adr
+    component: app
+
+  - id: adr-011
+    path: docs/app/adr/011-paste-capture-timing.md
+    type: adr
+    component: app
+
+  - id: adr-012
+    path: docs/app/adr/012-history-max-entries.md
+    type: adr
+    component: app
+
+  - id: adr-013
+    path: docs/app/adr/013-base-prompt-placeholder.md
+    type: adr
+    component: app
+
+  - id: adr-014
+    path: docs/app/adr/014-draft-save-on-dismiss.md
+    type: adr
+    component: app
+
+  # Changelog
+  - id: changelog-v1
+    path: docs/changelog/v1.0.0.md
+    type: changelog
+    component: platform

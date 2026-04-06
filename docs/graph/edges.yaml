@@ -1,0 +1,225 @@
+---
+# Flourish Documentation Graph Edges
+# Defines explicit relationships between documents for navigation and discoverability.
+
+edges:
+  # Tutorial → How-To cross-links
+  - from: tutorial-getting-started
+    to: howto-configure-providers
+    rel: next-step
+
+  - from: tutorial-getting-started
+    to: ref-keyboard-shortcuts
+    rel: reference
+
+  - from: tutorial-add-provider
+    to: ref-supported-models
+    rel: reference
+
+  - from: tutorial-add-provider
+    to: howto-custom-models
+    rel: see-also
+
+  - from: tutorial-custom-profile
+    to: howto-manage-profiles
+    rel: see-also
+
+  # How-To → Reference
+  - from: howto-configure-providers
+    to: ref-supported-models
+    rel: reference
+
+  - from: howto-configure-providers
+    to: ref-app-settings
+    rel: reference
+
+  - from: howto-configure-providers
+    to: adr-005
+    rel: rationale
+
+  - from: howto-manage-profiles
+    to: ref-data-models
+    rel: reference
+
+  - from: howto-manage-profiles
+    to: ref-app-settings
+    rel: reference
+
+  - from: howto-customize-shortcut
+    to: ref-keyboard-shortcuts
+    rel: reference
+
+  - from: howto-navigate-history
+    to: exp-workflow
+    rel: explanation
+
+  - from: howto-navigate-history
+    to: ref-database-schema
+    rel: reference
+
+  - from: howto-custom-models
+    to: ref-supported-models
+    rel: reference
+
+  - from: howto-custom-models
+    to: ref-app-settings
+    rel: reference
+
+  - from: howto-build-distribute
+    to: ref-build-config
+    rel: reference
+
+  - from: howto-build-distribute
+    to: adr-002
+    rel: rationale
+
+  - from: howto-build-distribute
+    to: adr-008
+    rel: rationale
+
+  - from: howto-add-provider
+    to: ref-llm-api
+    rel: reference
+
+  - from: howto-add-provider
+    to: exp-llm-abstraction
+    rel: explanation
+
+  - from: howto-add-provider
+    to: adr-006
+    rel: rationale
+
+  # Reference → Explanation cross-links
+  - from: ref-architecture
+    to: exp-overlay-focus
+    rel: explanation
+
+  - from: ref-architecture
+    to: exp-workflow
+    rel: explanation
+
+  - from: ref-architecture
+    to: exp-persistence
+    rel: explanation
+
+  - from: ref-architecture
+    to: exp-llm-abstraction
+    rel: explanation
+
+  - from: ref-architecture
+    to: adr-index
+    rel: see-also
+
+  - from: ref-database-schema
+    to: exp-persistence
+    rel: explanation
+
+  - from: ref-database-schema
+    to: adr-003
+    rel: rationale
+
+  - from: ref-database-schema
+    to: adr-012
+    rel: rationale
+
+  - from: ref-app-settings
+    to: exp-persistence
+    rel: explanation
+
+  - from: ref-app-settings
+    to: adr-004
+    rel: rationale
+
+  - from: ref-llm-api
+    to: exp-llm-abstraction
+    rel: explanation
+
+  - from: ref-llm-api
+    to: ref-data-models
+    rel: reference
+
+  - from: ref-llm-api
+    to: adr-006
+    rel: rationale
+
+  # Explanation → ADR cross-links
+  - from: exp-overlay-focus
+    to: adr-001
+    rel: rationale
+
+  - from: exp-overlay-focus
+    to: exp-paste
+    rel: see-also
+
+  - from: exp-overlay-focus
+    to: security
+    rel: see-also
+
+  - from: exp-llm-abstraction
+    to: adr-006
+    rel: rationale
+
+  - from: exp-llm-abstraction
+    to: ref-llm-api
+    rel: reference
+
+  - from: exp-llm-abstraction
+    to: howto-add-provider
+    rel: how-to
+
+  - from: exp-persistence
+    to: adr-003
+    rel: rationale
+
+  - from: exp-persistence
+    to: adr-004
+    rel: rationale
+
+  - from: exp-persistence
+    to: adr-005
+    rel: rationale
+
+  - from: exp-persistence
+    to: adr-010
+    rel: rationale
+
+  - from: exp-persistence
+    to: adr-014
+    rel: rationale
+
+  - from: exp-workflow
+    to: exp-paste
+    rel: see-also
+
+  - from: exp-workflow
+    to: ref-llm-api
+    rel: reference
+
+  - from: exp-workflow
+    to: ref-database-schema
+    rel: reference
+
+  - from: exp-workflow
+    to: adr-011
+    rel: rationale
+
+  - from: exp-paste
+    to: adr-011
+    rel: rationale
+
+  - from: exp-paste
+    to: security
+    rel: see-also
+
+  # Security cross-links
+  - from: security
+    to: adr-005
+    rel: rationale
+
+  - from: security
+    to: adr-008
+    rel: rationale
+
+  - from: security
+    to: exp-paste
+    rel: explanation

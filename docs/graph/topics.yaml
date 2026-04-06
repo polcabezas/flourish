@@ -1,0 +1,89 @@
+---
+# Flourish Documentation Topics
+# Groups documents by topic/concern for discovery.
+
+topics:
+  - name: Overlay & Focus
+    description: How the non-activating overlay panel works and why
+    docs:
+      - exp-overlay-focus
+      - exp-paste
+      - exp-workflow
+      - adr-001
+      - adr-011
+      - ref-keyboard-shortcuts
+      - howto-navigate-history
+      - howto-customize-shortcut
+
+  - name: LLM Integration
+    description: Provider abstraction, API details, model selection
+    docs:
+      - ref-llm-api
+      - ref-supported-models
+      - exp-llm-abstraction
+      - adr-006
+      - howto-add-provider
+      - howto-configure-providers
+      - howto-custom-models
+      - tutorial-add-provider
+
+  - name: Data Persistence
+    description: Keychain, SQLite history, UserDefaults settings
+    docs:
+      - exp-persistence
+      - ref-database-schema
+      - ref-app-settings
+      - adr-003
+      - adr-004
+      - adr-005
+      - adr-010
+      - adr-012
+      - adr-014
+
+  - name: Guideline Profiles
+    description: Built-in and custom prompt refinement profiles
+    docs:
+      - tutorial-custom-profile
+      - howto-manage-profiles
+      - ref-data-models
+      - adr-013
+
+  - name: Build & Distribution
+    description: XcodeGen, Makefile, signing, DMG packaging
+    docs:
+      - ref-build-config
+      - ref-file-structure
+      - howto-build-distribute
+      - adr-002
+      - adr-008
+
+  - name: Security
+    description: API key storage, Accessibility permission, clipboard handling
+    docs:
+      - security
+      - adr-005
+      - adr-008
+      - exp-paste
+
+  - name: Architecture
+    description: Component map, patterns, design decisions
+    docs:
+      - ref-architecture
+      - ref-file-structure
+      - adr-007
+      - adr-009
+      - exp-persistence
+      - exp-llm-abstraction
+
+  - name: Design System
+    description: Colors, typography, spacing, layout constants
+    docs:
+      - ref-design-system
+
+  - name: Getting Started
+    description: Onboarding tutorials and first steps
+    docs:
+      - tutorial-getting-started
+      - tutorial-add-provider
+      - tutorial-custom-profile
+      - ref-keyboard-shortcuts

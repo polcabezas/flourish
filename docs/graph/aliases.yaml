@@ -1,0 +1,10 @@
+---
+# Flourish Documentation Graph Aliases
+# Maps legacy or alternative paths to canonical paths.
+# Use when docs are moved or renamed.
+
+aliases: []
+# Example format:
+# - from: docs/old/path.md
+#   to: docs/new/path.md
+#   reason: "Reorganized in v2 docs restructure"

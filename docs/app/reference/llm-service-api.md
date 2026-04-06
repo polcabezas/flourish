@@ -1,6 +1,6 @@
 # LLM Service API Reference
 
-The protocol, implementations, request/response shapes, error types, and external API specifications for Flourish's LLM integration.
+The protocol, implementation, request/response shapes, and error types for Flourish's LLM integration.
 
 ---
 
@@ -22,7 +22,7 @@ protocol LLMService {
 |-----------|-------------|
 | `text` | The user's original prompt text |
 | `systemPrompt` | The assembled system prompt (base template + profile guidelines) |
-| `model` | The provider-specific model ID string |
+| `model` | Reserved; passed through to the Worker but the Worker uses `ACTIVE_MODEL` from its environment |
 
 Returns `LLMResponse` on success. Throws `LLMError` on any failure.
 
@@ -35,7 +35,7 @@ struct LLMResponse {
     let text: String       // Improved prompt returned by the model
     let tokensIn: Int      // Input (prompt) tokens consumed
     let tokensOut: Int     // Output (completion) tokens generated
-    let model: String      // Actual model ID that responded
+    let model: String      // Actual model ID that responded (from provider)
 }
 ```
 
@@ -45,10 +45,10 @@ struct LLMResponse {
 
 ```swift
 enum LLMError: LocalizedError {
-    case missingAPIKey(String)   // Provider name as associated value
+    case missingConfiguration    // Proxy URL or token not set in Info.plist
     case emptyInput
-    case badRequest(String)      // API error message
-    case unauthorized
+    case unauthorized            // Worker rejected the proxy token (HTTP 401)
+    case badRequest(String)      // API error message forwarded from provider
     case billingError
     case rateLimited
     case serverError(Int)        // HTTP status code
@@ -59,15 +59,87 @@ enum LLMError: LocalizedError {
 
 | Case | User-Facing Message | When Thrown |
 |------|---------------------|-------------|
-| `missingAPIKey(provider)` | "No API key for {provider}. Add it in Settings → Providers." | API key not found in Keychain |
+| `missingConfiguration` | "Proxy not configured. Contact support." | `FlourishProxyURL` or `FlourishProxyToken` missing from `Info.plist` |
 | `emptyInput` | "Prompt is empty." | Input text is blank or whitespace-only |
-| `badRequest(msg)` | The API error message | HTTP 400 |
-| `unauthorized` | "Invalid API key. Check your key in Settings → Providers." | HTTP 401 |
-| `billingError` | "Billing issue. Check your account balance at openrouter.ai/credits." | HTTP 402 |
+| `unauthorized` | "Proxy authentication failed. Rebuild the app with a valid token." | Worker returned HTTP 401 |
+| `badRequest(msg)` | The API error message forwarded from provider | HTTP 400 from provider |
+| `billingError` | "Billing issue. Contact the Flourish team." | HTTP 402 from provider |
 | `rateLimited` | "Rate limit reached. Wait a moment and try again." | HTTP 429 |
-| `serverError(code)` | "Server error ({code}). The provider may be temporarily unavailable." | HTTP 5xx or unexpected code |
-| `invalidResponse` | "Unexpected response format from the API." | JSON decode failure or non-HTTP response |
-| `noContent` | "The model returned an empty response." | Choices array empty or content string empty |
+| `serverError(code)` | "Server error ({code}). The service may be temporarily unavailable." | HTTP 5xx or unexpected status |
+| `invalidResponse` | "Unexpected response format from the proxy." | JSON decode failure or non-HTTP response |
+| `noContent` | "The model returned an empty response." | Response body has no content |
+
+---
+
+## `FlourishProxyService`
+
+**File:** `Core/Services/FlourishProxyService.swift`
+
+The sole concrete implementation of `LLMService`. Reads proxy configuration from `Bundle.main.infoDictionary` at call time.
+
+### Configuration keys (from `Info.plist`)
+
+| Key | Source | Description |
+|-----|--------|-------------|
+| `FlourishProxyURL` | `FLOURISH_PROXY_URL` in `Secrets.xcconfig` | Hostname only (e.g., `flourish-proxy.yoursubdomain.workers.dev`). `https://` is prepended in code |
+| `FlourishProxyToken` | `FLOURISH_PROXY_TOKEN` in `Secrets.xcconfig` | Bearer token used in the `Authorization` header |
+
+### Endpoint
+
+```
+POST https://<FlourishProxyURL>/improve
+```
+
+### Request Headers
+
+| Header | Value |
+|--------|-------|
+| `Authorization` | `Bearer <FlourishProxyToken>` |
+| `Content-Type` | `application/json` |
+
+Timeout: **60 seconds**
+
+### Request Body
+
+```json
+{
+  "text": "<original prompt text>",
+  "systemPrompt": "<assembled system prompt>"
+}
+```
+
+### Response Body (success — HTTP 200)
+
+```json
+{
+  "text": "<improved prompt>",
+  "tokensIn": 142,
+  "tokensOut": 87,
+  "model": "google/gemini-2.0-flash-001"
+}
+```
+
+### Swift decode type
+
+```swift
+struct ProxyResponse: Decodable {
+    let text: String
+    let tokensIn: Int
+    let tokensOut: Int
+    let model: String
+}
+```
+
+### HTTP Status → LLMError mapping
+
+| HTTP Status | LLMError |
+|-------------|----------|
+| 200 | *(success)* |
+| 400 | `.badRequest(msg)` |
+| 401 | `.unauthorized` |
+| 402 | `.billingError` |
+| 429 | `.rateLimited` |
+| Any other | `.serverError(statusCode)` |
 
 ---
 
@@ -91,126 +163,6 @@ The base template contains a `{guidelines}` placeholder. `build(profile:)`:
 
 ---
 
-## OpenRouterService
-
-**File:** `Core/Services/OpenRouterService.swift`
-
-### Base URL
-```
-https://openrouter.ai/api/v1
-```
-
-### Endpoint
-```
-POST /chat/completions
-```
-
-### Request Headers
-
-| Header | Value |
-|--------|-------|
-| `Authorization` | `Bearer {apiKey}` |
-| `Content-Type` | `application/json` |
-| `HTTP-Referer` | `com.personal.flourish` |
-| `X-Title` | `Flourish` |
-
-Timeout: **60 seconds**
-
-### Request Body
-
-```json
-{
-  "model": "google/gemini-2.0-flash-001",
-  "stream": false,
-  "messages": [
-    { "role": "system", "content": "<assembled system prompt>" },
-    { "role": "user",   "content": "<original prompt text>" }
-  ]
-}
-```
-
-### Response Body (success — HTTP 200)
-
-```json
-{
-  "choices": [
-    {
-      "message": {
-        "role": "assistant",
-        "content": "<improved prompt>"
-      }
-    }
-  ],
-  "usage": {
-    "prompt_tokens": 142,
-    "completion_tokens": 87
-  },
-  "model": "google/gemini-2.0-flash-001"
-}
-```
-
-### Swift decode types
-
-```swift
-struct ChatCompletionResponse: Decodable {
-    let choices: [Choice]
-    let usage: Usage?
-    let model: String?
-
-    struct Choice: Decodable {
-        let message: Message
-        struct Message: Decodable {
-            let content: String?
-        }
-    }
-
-    struct Usage: Decodable {
-        let prompt_tokens: Int
-        let completion_tokens: Int
-    }
-}
-```
-
-### HTTP Status → LLMError mapping
-
-| HTTP Status | LLMError |
-|-------------|----------|
-| 200 | *(success)* |
-| 400 | `.badRequest(msg)` |
-| 401 | `.unauthorized` |
-| 402 | `.billingError` |
-| 429 | `.rateLimited` |
-| Any other | `.serverError(statusCode)` |
-
----
-
-## GroqService
-
-**File:** `Core/Services/GroqService.swift`
-
-### Base URL
-```
-https://api.groq.com/openai/v1
-```
-
-### Endpoint
-```
-POST /chat/completions
-```
-
-The Groq API is **OpenAI-compatible**. The request and response bodies, headers, and error handling are identical to OpenRouterService.
-
-The only differences:
-- Different base URL
-- No `HTTP-Referer` or `X-Title` headers (not required by Groq)
-- Different set of available model IDs
-
-### HTTP Status → LLMError mapping
-
-Same as OpenRouter.
-
----
-
 ## System Prompt Assembly
 
 ```
@@ -231,10 +183,28 @@ Return only the improved prompt. Do not explain your changes.
 
 ---
 
+## Testing the Abstraction
+
+Any test can substitute a mock conformance:
+
+```swift
+struct MockLLMService: LLMService {
+    var response: LLMResponse
+    func improvePrompt(_ text: String, systemPrompt: String, model: String) async throws -> LLMResponse {
+        response
+    }
+}
+```
+
+Inject it into `OverlayWindowController` during tests to avoid real HTTP calls.
+
+---
+
 ## Related
 
 - [LLM Provider Abstraction Explanation](../explanation/llm-provider-abstraction.md)
-- [Data Models Reference](data-models.md) — `LLMResponse`, `LLMProvider`, `ModelOption`
+- [Data Models Reference](data-models.md) — `LLMResponse`, `GuidelineProfile`
 - [Prompt Improvement Workflow Explanation](../explanation/prompt-improvement-workflow.md)
 - [ADR-006: LLM Service Protocol](../adr/006-llm-service-protocol.md)
-- [Supported Models Reference](supported-models.md)
+- [ADR-015: Cloudflare Worker Proxy](../adr/015-cloudflare-worker-proxy.md)
+- [Build Configuration Reference](build-configuration.md) — Secrets.xcconfig setup

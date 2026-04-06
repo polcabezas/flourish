@@ -9,10 +9,11 @@ The complete sequence of events from the moment a user presses the global hotkey
 ```
 Hotkey pressed
     → Overlay shown (non-activating, focus stays in previous app)
-    → User types / selects profile and provider
+    → User types and selects a profile
     → Return pressed
     → Loader shown
-    → LLM API call (async)
+    → POST to Cloudflare Worker proxy (async)
+    → Worker forwards to configured LLM provider
     → Improved text written to clipboard
     → Previous app reactivated
     → Cmd+V simulated
@@ -72,6 +73,8 @@ The overlay is now visible and key. The `TextEditor` in `OverlayView` auto-focus
 | Up arrow | Saves draft to in-memory buffer, loads previous history entry |
 | Down arrow | Loads next history entry or restores in-memory draft |
 
+The toolbar shows a profile picker and a submit button. There is no provider or model picker — those are controlled server-side via the Cloudflare Worker.
+
 ---
 
 ## Phase 3: Submission
@@ -111,34 +114,29 @@ let systemPrompt = BasePrompt.build(profile: profile)
 
 ## Phase 4: LLM call
 
-### 4.1 API key retrieval
+### 4.1 Service instantiation and call
 
 ```swift
-let apiKey = KeychainService.shared.load(for: Defaults.activeProviderEnum)
-guard let apiKey, !apiKey.isEmpty else {
-    throw LLMError.missingAPIKey(provider.displayName)
-}
-```
-
-### 4.2 Service instantiation and call
-
-```swift
-let service: LLMService = Defaults.activeProviderEnum == .openRouter
-    ? OpenRouterService(apiKey: apiKey, model: selectedModel)
-    : GroqService(apiKey: apiKey, model: selectedModel)
+let service: LLMService = FlourishProxyService()
 
 let response = try await service.improvePrompt(
     text,
     systemPrompt: systemPrompt,
-    model: selectedModel
+    model: ""   // model selection is handled by the Worker
 )
 ```
 
-The `improvePrompt` call:
-1. Builds an HTTP POST request to the provider's `/chat/completions` endpoint.
-2. Sends the system prompt as a `"system"` role message and the user's text as a `"user"` role message.
+`FlourishProxyService.improvePrompt` reads `FlourishProxyURL` and `FlourishProxyToken` from `Bundle.main.infoDictionary`, then:
+1. Builds an HTTP POST request to `https://<FlourishProxyURL>/improve`.
+2. Sends `{ "text": text, "systemPrompt": systemPrompt }` as the JSON body.
 3. Awaits the response (timeout: 60 seconds).
-4. Decodes the JSON into `LLMResponse`.
+4. Decodes `{ text, tokensIn, tokensOut, model }` into `LLMResponse`.
+
+The Worker, on receipt:
+1. Validates the `Authorization: Bearer` token.
+2. Reads `ACTIVE_PROVIDER` and `ACTIVE_MODEL` from its environment.
+3. Calls the configured provider's API using a key stored as a Cloudflare secret.
+4. Returns the normalized response.
 
 The call is fully async — the UI thread is never blocked.
 
@@ -213,7 +211,7 @@ let entry = HistoryEntry(
     createdAt: Date(),
     originalPrompt: text,
     improvedPrompt: response.text,
-    provider: Defaults.activeProviderEnum.rawValue,
+    provider: response.model.split(separator: "/").first.map(String.init) ?? "proxy",
     modelId: response.model,
     tokensIn: response.tokensIn,
     tokensOut: response.tokensOut,
@@ -221,6 +219,8 @@ let entry = HistoryEntry(
 )
 try HistoryStore.shared.insert(entry)
 ```
+
+The `provider` field is derived from the model ID returned by the Worker (e.g., the vendor prefix in `"google/gemini-2.0-flash-001"`). The Worker sets `response.model` to the actual model string from the provider API.
 
 ### 6.2 Update stats
 
@@ -244,12 +244,12 @@ LoaderWindowController.shared.hide()
 
 | Error | User sees | Recovery |
 |-------|-----------|---------|
-| Missing API key | NSAlert with Settings link | User adds key in Settings |
+| Proxy not configured | NSAlert: "Proxy not configured. Contact support." | Developer rebuilds with valid `Secrets.xcconfig` |
 | Network timeout (60s) | "Server error" alert | User retries |
-| HTTP 401 | "Invalid API key" alert | User checks key in Settings |
+| HTTP 401 from Worker | "Proxy authentication failed" alert | Developer rebuilds with valid proxy token |
 | HTTP 429 | "Rate limit" alert | User waits |
-| HTTP 402 | "Billing issue" alert | User adds credit |
-| Empty response | "Empty response" alert | User retries or switches model |
+| HTTP 402 | "Billing issue. Contact the Flourish team." | Founder tops up provider account |
+| Empty response | "Empty response" alert | User retries; founder checks model config |
 | Accessibility denied | NSAlert with instructions | User grants in System Settings |
 
 In all error cases, the overlay draft is NOT saved (the text is lost). This is a known v1.0.0 limitation.

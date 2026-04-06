@@ -20,22 +20,10 @@ struct HomeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                // ── Header ────────────────────────────────────────────────────
-                HStack(alignment: .firstTextBaseline) {
-                    Text("Flourish")
-                        .font(.flourishTitle)
-                        .foregroundColor(.flourishTextPrimary)
-                    Spacer()
-                    StatBadge(icon: "flame.fill", value: "\(thisWeekCount) this week", color: .orange)
-                    StatBadge(icon: "pencil", value: "\(totalCount) total", color: .flourishAccent)
-                }
-                .padding(.horizontal, FS.xxl)
-                .padding(.top, FS.xxl)
-                .padding(.bottom, FS.lg)
-
                 // ── Hero Card ─────────────────────────────────────────────────
                 HeroCard()
                     .padding(.horizontal, FS.xxl)
+                    .padding(.top, FS.xxl)
                     .padding(.bottom, FS.xl)
 
                 // ── History Groups ────────────────────────────────────────────
@@ -43,8 +31,10 @@ struct HomeView: View {
                     EmptyHistoryView()
                         .padding(.top, FS.xxl)
                 } else {
-                    // Clear history button
+                    // Stats + Clear history row
                     HStack {
+                        StatBadge(icon: "flame.fill", value: "\(thisWeekCount) this week", color: .orange)
+                        StatBadge(icon: "pencil", value: "\(totalCount) total", color: .flourishAccent)
                         Spacer()
                         Button("Clear history") { showClearConfirm = true }
                             .font(.flourishMeta)
@@ -108,7 +98,7 @@ private struct StatBadge: View {
                 .font(.flourishMeta)
                 .foregroundColor(.flourishTextSecondary)
         }
-        .padding(.leading, FS.lg)
+        .padding(.trailing, FS.sm)
     }
 }
 
@@ -121,9 +111,8 @@ private struct HeroCard: View {
             RoundedRectangle(cornerRadius: FS.radiusLg)
                 .fill(Color.flourishSurfaceHero)
 
-            // Subtle floral accent — large faded F in corner
-            FlourishFShape()
-                .fill(Color.white.opacity(0.04))
+            // Subtle accent — large faded f mark in corner
+            FlourishFShape(color: Color.white.opacity(0.04))
                 .frame(width: 140, height: 215)
                 .offset(x: -10, y: 30)
                 .clipped()

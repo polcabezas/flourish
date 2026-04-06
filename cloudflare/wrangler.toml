@@ -1,0 +1,13 @@
+name = "flourish-proxy"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# Deploy: wrangler deploy
+# Set secrets (never committed): wrangler secret put PROXY_TOKEN
+#                                 wrangler secret put OPENROUTER_API_KEY
+#                                 wrangler secret put GROQ_API_KEY
+#
+# Set plain vars (provider/model switch — safe to commit or set in dashboard):
+[vars]
+ACTIVE_PROVIDER = "groq"
+ACTIVE_MODEL    = "llama-3.1-8b-instant"

@@ -1,12 +1,14 @@
 # Supported Models Reference
 
-All built-in LLM models in Flourish, with identifiers and pricing. Custom model IDs can be entered for any model not in this list.
+The LLM model used by Flourish is configured in the Cloudflare Worker via `ACTIVE_MODEL` in `cloudflare/wrangler.toml`. End users do not select models — this is a founder/developer operation.
+
+This page lists commonly used models for reference when choosing a value for `ACTIVE_MODEL`.
 
 ---
 
 ## OpenRouter Models
 
-Accessed via `https://openrouter.ai/api/v1/chat/completions`. Pricing is per million tokens (USD).
+Set `ACTIVE_PROVIDER = "openrouter"` and `ACTIVE_MODEL` to one of the IDs below. Pricing is per million tokens (USD).
 
 | Display Name | Model ID | $/M tokens in | $/M tokens out | Notes |
 |-------------|----------|--------------|----------------|-------|
@@ -21,11 +23,13 @@ Accessed via `https://openrouter.ai/api/v1/chat/completions`. Pricing is per mil
 | Claude 3.5 Sonnet | `anthropic/claude-3.5-sonnet` | $3.00 | $15.00 | Best at nuanced rewriting; expensive |
 | Qwen 2.5 72B | `qwen/qwen-2.5-72b-instruct` | $0.35 | $0.40 | Strong multilingual model |
 
+For the full model list, see [openrouter.ai/models](https://openrouter.ai/models).
+
 ---
 
 ## Groq Models
 
-Accessed via `https://api.groq.com/openai/v1/chat/completions`. All free on the standard tier (subject to rate limits).
+Set `ACTIVE_PROVIDER = "groq"` and `ACTIVE_MODEL` to one of the IDs below.
 
 | Display Name | Model ID | Speed | Notes |
 |-------------|----------|-------|-------|
@@ -36,22 +40,7 @@ Accessed via `https://api.groq.com/openai/v1/chat/completions`. All free on the 
 | Mixtral 8x7B | `mixtral-8x7b-32768` | Fast | MoE architecture, good context window |
 | Gemma 2 9B | `gemma2-9b-it` | Fast | Google's compact model |
 
-Groq pricing in Flourish: `pricePerMTokenIn = 0`, `pricePerMTokenOut = 0`. Cost estimate always shows $0.00 for Groq models.
-
----
-
-## Using Custom Models
-
-Any model ID available on OpenRouter or Groq can be entered as a custom model. See [Use Custom Models](../how-to/use-custom-models.md).
-
----
-
-## Model Selection Persistence
-
-| Provider | Defaults Key | Default Value |
-|----------|-------------|---------------|
-| OpenRouter | `openRouterModel` | `"google/gemini-2.0-flash-001"` |
-| Groq | `groqModel` | `"llama-3.3-70b-versatile"` |
+For the full model list, see [console.groq.com/docs/models](https://console.groq.com/docs/models).
 
 ---
 
@@ -64,15 +53,21 @@ cost = (tokensIn  / 1_000_000) × pricePerMTokenIn
      + (tokensOut / 1_000_000) × pricePerMTokenOut
 ```
 
-This value is stored in `history_entry.estimated_cost_usd` and accumulated in `Defaults[.totalCostUSD]`.
+The Worker returns token counts from the provider's usage object. The app calculates cost locally based on the `model` string returned in `LLMResponse`. If the model string does not match a known entry in `ModelOption`, cost defaults to `$0.00`.
 
-Note: Pricing is set at release time. OpenRouter adjusts model pricing periodically. The displayed costs may not reflect current pricing.
+Note: Pricing is set at build time. Providers adjust model pricing periodically. Displayed costs are estimates only.
+
+---
+
+## Changing the Active Model
+
+See [How-To: Change the Active Model](../how-to/use-custom-models.md) for instructions on updating `wrangler.toml` and deploying.
 
 ---
 
 ## Related
 
-- [Data Models Reference](data-models.md) — `ModelOption` struct with full pricing
-- [Configure Providers](../how-to/configure-providers.md)
-- [Use Custom Models](../how-to/use-custom-models.md)
+- [How-To: Configure the LLM Provider](../how-to/configure-providers.md)
+- [How-To: Deploy or Update the Worker](../how-to/deploy-worker.md)
+- [ADR-015: Cloudflare Worker Proxy](../adr/015-cloudflare-worker-proxy.md)
 - [LLM Service API Reference](llm-service-api.md)

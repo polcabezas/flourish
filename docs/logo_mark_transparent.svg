@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="12 -7 110 181" role="img" aria-label="Flourish">
+  <!--
+    Flourish mark — just the "f", transparent background.
+    Same paths and coordinates as logo_horizontal; viewBox cropped to the f only.
+    Visual f bounds: x≈[30,104] y≈[11,156] — 18px padding each side.
+    Color: #5B7B4E (flourishAccent)
+  -->
+  <g stroke="#5B7B4E" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 57 148 C 57 131, 55 103, 54 74
+             C 53 54, 55 40, 60 31
+             C 65 21, 79 19, 90 25
+             C 96 30, 93 37, 88 35"/>
+    <path d="M 38 102 C 50 100, 58 100, 80 101"/>
+  </g>
+</svg>

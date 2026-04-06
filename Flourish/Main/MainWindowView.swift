@@ -69,7 +69,7 @@ private struct SidebarView: View {
         VStack(spacing: 0) {
             // Logo
             HStack(spacing: 10) {
-                FlourishLogoView(size: 26, color: .flourishAccent)
+                FlourishWordmarkView(height: 26, color: .flourishAccent)
                 Spacer()
             }
             .padding(.horizontal, FS.sidebarItemPaddingH + 4)

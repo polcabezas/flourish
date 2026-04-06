@@ -9,6 +9,26 @@ How to generate the Xcode project, build a release binary, and package a distrib
 - Xcode 15+
 - XcodeGen: `brew install xcodegen`
 - `create-dmg` (for DMG packaging): `brew install create-dmg`
+- `Flourish/Config/Secrets.xcconfig` present and filled in (see below)
+
+---
+
+## Set up Secrets.xcconfig
+
+The app reads proxy connection details from `Secrets.xcconfig`, which is gitignored. Before building for the first time:
+
+```bash
+cp Flourish/Config/Secrets.xcconfig.example Flourish/Config/Secrets.xcconfig
+```
+
+Open `Secrets.xcconfig` and fill in the two values (obtain them from the team):
+
+```
+FLOURISH_PROXY_URL   = flourish-proxy.yoursubdomain.workers.dev
+FLOURISH_PROXY_TOKEN = <proxy bearer token>
+```
+
+`FLOURISH_PROXY_URL` must be the hostname only — no `https://` prefix (xcconfig treats `//` as a comment).
 
 ---
 

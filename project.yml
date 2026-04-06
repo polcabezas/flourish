@@ -1,4 +1,11 @@
 name: Flourish
+
+# Maps build configurations to xcconfig files.
+# Secrets.xcconfig is gitignored — copy from Flourish/Config/Secrets.xcconfig.example.
+configFiles:
+  Debug:   Flourish/Config/Secrets.xcconfig
+  Release: Flourish/Config/Secrets.xcconfig
+
 options:
   bundleIdPrefix: com.personal
   deploymentTarget:

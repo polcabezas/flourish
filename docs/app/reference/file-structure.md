@@ -8,11 +8,20 @@ Every source file in the Flourish project with its responsibility and key export
 
 | File | Purpose |
 |------|---------|
-| `project.yml` | XcodeGen configuration — source of truth for the Xcode project. Defines bundle ID, deployment target, Swift version, SPM dependencies, code signing, and build settings |
+| `project.yml` | XcodeGen configuration — source of truth for the Xcode project. Defines bundle ID, deployment target, Swift version, SPM dependencies, code signing, build settings, and `configFiles` mapping to `Secrets.xcconfig` |
 | `Makefile` | Three targets: `generate` (xcodegen), `open` (generate + open Xcode), `clean` (remove .xcodeproj and build/) |
 | `build-dmg.sh` | Shell script for packaging a distributable `.dmg` using `create-dmg` |
 | `generate-icons.swift` | Swift script to generate all required app icon sizes from a source image |
-| `.gitignore` | Ignores `*.xcodeproj`, `build/`, `DerivedData/`, `.DS_Store` |
+| `.gitignore` | Ignores `*.xcodeproj`, `build/`, `DerivedData/`, `.DS_Store`, `Secrets.xcconfig` |
+
+---
+
+## `cloudflare/`
+
+| File | Purpose |
+|------|---------|
+| `cloudflare/worker.js` | Cloudflare Worker script. Validates `Authorization: Bearer` token, reads `ACTIVE_PROVIDER` and `ACTIVE_MODEL` from environment, forwards requests to the configured LLM provider API using keys from Cloudflare secrets |
+| `cloudflare/wrangler.toml` | Wrangler deploy configuration. `ACTIVE_PROVIDER` and `ACTIVE_MODEL` are set here as plain vars. Provider API keys and `FLOURISH_PROXY_TOKEN` are stored as Cloudflare secrets (not in this file) |
 
 ---
 
@@ -24,8 +33,15 @@ Every source file in the Flourish project with its responsibility and key export
 |------|-------------|
 | `FlourishApp.swift` | `@main struct FlourishApp: App`. Declares `MenuBarExtra` or `WindowGroup` scenes. Wires `AppDelegate` |
 | `AppDelegate.swift` | `class AppDelegate: NSObject, NSApplicationDelegate`. `applicationDidFinishLaunching`: installs `KeyboardShortcuts` binding for `.openOverlay`, requests Accessibility permission, sets initial dock visibility, calls `MenuBarManager.shared.setup()` |
-| `Info.plist` | Bundle ID: `com.personal.flourish`. `LSUIElement = YES` (menu bar agent). `NSAccessibilityUsageDescription`. `NSAppleEventsUsageDescription`. Version `1.0.0`, build `1` |
+| `Info.plist` | Bundle ID: `com.personal.flourish`. `LSUIElement = YES` (menu bar agent). `NSAccessibilityUsageDescription`. `NSAppleEventsUsageDescription`. `FlourishProxyURL` and `FlourishProxyToken` (injected from `Secrets.xcconfig` via build settings). Version `1.0.0`, build `1` |
 | `Flourish.entitlements` | Minimal entitlements. `com.apple.security.app-sandbox = false`. No network entitlements needed (URLSession is unrestricted without sandbox) |
+
+### `Config/`
+
+| File | Key Exports |
+|------|-------------|
+| `Config/Secrets.xcconfig` | Gitignored. Provides `FLOURISH_PROXY_URL` (hostname only) and `FLOURISH_PROXY_TOKEN` as build settings injected into `Info.plist` |
+| `Config/Secrets.xcconfig.example` | Committed template. Safe to commit — contains placeholder values only |
 
 ---
 
@@ -46,8 +62,7 @@ Every source file in the Flourish project with its responsibility and key export
 |------|-------------|
 | `GuidelineProfile.swift` | `struct GuidelineProfile: Identifiable, Codable, Defaults.Serializable, Equatable`. Static property `builtInProfiles: [GuidelineProfile]` |
 | `HistoryEntry.swift` | `struct HistoryEntry`. GRDB `FetchableRecord` + `MutablePersistableRecord`. `databaseTableName = "history_entry"` |
-| `LLMProvider.swift` | `enum LLMProvider: String, CaseIterable, Codable, Defaults.Serializable`. Cases: `.openRouter`, `.groq` |
-| `ModelOption.swift` | `struct ModelOption: Identifiable, Equatable`. Static arrays `openRouterModels` and `groqModels` with all built-in model metadata and pricing |
+| `ModelOption.swift` | `struct ModelOption: Identifiable, Equatable`. Static arrays with built-in model metadata and pricing (used for cost calculation from history) |
 
 ---
 
@@ -56,11 +71,9 @@ Every source file in the Flourish project with its responsibility and key export
 | File | Key Exports |
 |------|-------------|
 | `LLMService.swift` | `protocol LLMService`. `struct LLMResponse`. `enum LLMError: LocalizedError` |
-| `OpenRouterService.swift` | `final class OpenRouterService: LLMService`. Base URL: `https://openrouter.ai/api/v1` |
-| `GroqService.swift` | `final class GroqService: LLMService`. Base URL: `https://api.groq.com/openai/v1` |
+| `FlourishProxyService.swift` | `final class FlourishProxyService: LLMService`. Reads `FlourishProxyURL` and `FlourishProxyToken` from `Bundle.main.infoDictionary`. POSTs to `https://<FlourishProxyURL>/improve` |
 | `BasePrompt.swift` | `enum BasePrompt { static func build(profile:) -> String }`. Substitutes `{guidelines}` placeholder |
 | `HistoryStore.swift` | `final class HistoryStore`. Singleton. GRDB `DatabaseQueue`. Methods: `insert`, `fetchAll`, `fetchRecent`, `delete`, `deleteAll`, `totalCount`. Max 500 entries |
-| `KeychainService.swift` | `final class KeychainService`. Singleton. Service: `"com.personal.flourish"`. Methods: `save(_:for:)`, `load(for:)`, `delete(for:)`, `hasKey(for:)` |
 | `PasteService.swift` | `final class PasteService`. Singleton. `capturePreviousApp()`, `paste(text:)`. Internally: `NSPasteboard`, `NSWorkspace`, `CGEvent` (Cmd+V simulation) |
 | `SessionStatsTracker.swift` | `final class SessionStatsTracker: ObservableObject`. `@Published` session request count, tokens, cost. `record(_ response: LLMResponse)` |
 
@@ -70,7 +83,7 @@ Every source file in the Flourish project with its responsibility and key export
 
 | File | Key Exports |
 |------|-------------|
-| `AppSettings.swift` | All `extension Defaults.Keys { static let ... }` definitions. `extension Defaults { static var activeProviderEnum: LLMProvider }` |
+| `AppSettings.swift` | All `extension Defaults.Keys { static let ... }` definitions for profiles, stats, base prompt, and general preferences |
 
 ---
 
@@ -93,9 +106,8 @@ Every source file in the Flourish project with its responsibility and key export
 
 | File | Key Exports |
 |------|-------------|
-| `OverlayView.swift` | `struct OverlayView: View`. `@ObservedObject var viewModel: OverlayViewModel`. TextEditor with placeholder, auto-focus on appear, Up/Down arrow key handling, Return/Shift+Return handling. Toolbar row. Hints row. Draft restored banner |
+| `OverlayView.swift` | `struct OverlayView: View`. `@ObservedObject var viewModel: OverlayViewModel`. TextEditor with placeholder, auto-focus on appear, Up/Down arrow key handling, Return/Shift+Return handling. Toolbar row (profile picker + submit button). Hints row. Draft restored banner |
 | `ProfilePickerView.swift` | `struct ProfilePickerView: View`. Reads all profiles (built-in + custom from Defaults). Writes selection to `Defaults[.lastSelectedProfileId]` |
-| `ProviderPickerView.swift` | `struct ProviderPickerView: View`. Reads enabled providers. Writes selection to `Defaults[.activeProvider]` |
 
 ---
 
@@ -117,7 +129,7 @@ Every source file in the Flourish project with its responsibility and key export
 | `MainWindowView.swift` | `struct MainWindowView: View`. `NavigationSplitView` with sidebar items: Home, Profiles, Settings. Reads `@State var selection` |
 | `HomeView.swift` | `struct HomeView: View`. Header with all-time stats badges. Hero card ("Open Overlay →" button). History timeline grouped by TODAY/YESTERDAY/EARLIER using `TwoColumnLayout`. Row-level delete and copy actions |
 | `ProfilesView.swift` | `struct ProfilesView: View`. List of all profiles. Edit button → `ProfileEditSheet` sheet. Delete action for custom profiles. "New Profile" toolbar button |
-| `SettingsPanelView.swift` | `struct SettingsPanelView: View`. Single scrollable view with sections: Providers (OpenRouter, Groq), Keyboard Shortcut (`KeyboardShortcuts.Recorder`), Base Prompt (`TextEditor` + reset), General (Launch at Login, Show Dock Icon, About) |
+| `SettingsPanelView.swift` | `struct SettingsPanelView: View`. Single scrollable view with sections: Keyboard Shortcut (`KeyboardShortcuts.Recorder`), Base Prompt (`TextEditor` + reset), General (Launch at Login, Show Dock Icon, About) |
 
 ---
 
@@ -155,6 +167,7 @@ Every source file in the Flourish project with its responsibility and key export
 |------|--------|
 | `Flourish.xcodeproj/` | Generated by `make generate`, **not committed** |
 | `build/` | Build artifacts and DerivedData, **not committed** |
+| `Flourish/Config/Secrets.xcconfig` | Proxy credentials, **not committed** — copy from `Secrets.xcconfig.example` |
 
 ---
 

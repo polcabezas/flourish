@@ -76,17 +76,37 @@ See [ADR-008: Ad-hoc Signing](../adr/008-adhoc-signing.md) for rationale.
 
 ---
 
+## Secrets.xcconfig
+
+**File:** `Flourish/Config/Secrets.xcconfig` (gitignored)  
+**Template:** `Flourish/Config/Secrets.xcconfig.example` (committed, safe — no real values)
+
+This file supplies the proxy connection details that are injected into `Info.plist` at build time. It must exist before building. Copy the example and fill in the values (obtain from the team):
+
+```
+FLOURISH_PROXY_URL   = flourish-proxy.yoursubdomain.workers.dev
+FLOURISH_PROXY_TOKEN = <proxy bearer token>
+```
+
+**Important:** `FLOURISH_PROXY_URL` must be the hostname only — no `https://` prefix. xcconfig files treat `//` as a line comment, which would silently truncate any URL with a scheme.
+
+`project.yml` maps `Secrets.xcconfig` via the `configFiles` key, making both variables available as build settings that are substituted into `Info.plist` entries `FlourishProxyURL` and `FlourishProxyToken`.
+
+---
+
 ## Info.plist Keys
 
 | Key | Value | Effect |
 |-----|-------|--------|
-| `CFBundleIdentifier` | `com.personal.flourish` | App identity, Keychain service name |
+| `CFBundleIdentifier` | `com.personal.flourish` | App identity |
 | `CFBundleShortVersionString` | `1.0.0` | User-visible version |
 | `CFBundleVersion` | `1` | Build number |
 | `LSMinimumSystemVersion` | `13.0` | Minimum macOS version |
 | `LSUIElement` | `YES` | Launches as a menu bar agent (no Dock icon) |
 | `NSAccessibilityUsageDescription` | String | Shown when requesting Accessibility permission |
 | `NSAppleEventsUsageDescription` | String | Shown when interacting with other apps |
+| `FlourishProxyURL` | `$(FLOURISH_PROXY_URL)` | Proxy hostname injected from `Secrets.xcconfig` |
+| `FlourishProxyToken` | `$(FLOURISH_PROXY_TOKEN)` | Proxy bearer token injected from `Secrets.xcconfig` |
 
 ---
 

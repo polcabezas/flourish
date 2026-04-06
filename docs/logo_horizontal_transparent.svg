@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 185" role="img" aria-label="Flourish">
+  <!--
+    Flourish wordmark — hand-drawn style.
+    All letters drawn as organic thick-stroke bezier paths
+    matching the "f" icon: rounded caps, slight imperfections, muted forest green.
+    Color: #5B7B4E (flourishAccent)
+    Stroke-width: 16 (≈ 13% of ascender height, matching icon proportions)
+    ViewBox: 500 × 185
+  -->
+  <g stroke="#5B7B4E" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none">
+
+    <!-- ── f ── organic ascender with right hook + crossbar -->
+    <!-- vertical stroke: slight left-then-right lean, hook curls right at top -->
+    <path d="M 57 148 C 57 131, 55 103, 54 74
+             C 53 54, 55 40, 60 31
+             C 65 21, 79 19, 90 25
+             C 96 30, 93 37, 88 35"/>
+    <!-- crossbar: slightly angled, extends left of stem -->
+    <path d="M 38 102 C 50 100, 58 100, 80 101"/>
+
+    <!-- ── l ── tall gentle vertical -->
+    <path d="M 106 27 C 105 52, 105 86, 105 117
+             C 105 133, 106 144, 108 148"/>
+
+    <!-- ── o ── organic near-closed oval; starts/ends offset by ~2px for open quality -->
+    <path d="M 151 75
+             C 136 75, 123 91, 123 110
+             C 123 129, 136 145, 152 145
+             C 168 145, 180 129, 179 110
+             C 178 91, 165 75, 153 75"/>
+
+    <!-- ── u ── two stems joined by a rounded bowl -->
+    <path d="M 199 75
+             C 198 101, 197 123, 198 136
+             C 199 147, 208 156, 220 156
+             C 232 156, 239 147, 239 136
+             C 239 123, 238 100, 237 75"/>
+
+    <!-- ── r ── vertical stem -->
+    <path d="M 259 148 C 259 131, 259 105, 259 75"/>
+    <!-- r shoulder: short arch branching right from stem -->
+    <path d="M 259 98 C 263 88, 273 80, 286 77
+             C 294 74, 301 77, 304 84"/>
+
+    <!-- ── i ── short vertical (dot added as filled circle below) -->
+    <path d="M 322 75 C 322 97, 322 120, 322 141
+             C 322 145, 322 148, 322 149"/>
+
+    <!-- ── s ── flowing S-curve within x-height, starting upper-right -->
+    <path d="M 388 86
+             C 382 78, 371 74, 361 77
+             C 351 80, 347 92, 353 102
+             C 359 112, 373 115, 380 124
+             C 388 132, 387 146, 380 152
+             C 373 158, 361 159, 351 155
+             C 345 152, 342 147, 341 143"/>
+
+    <!-- ── h ── tall stem (same height as l, f) -->
+    <path d="M 411 27 C 411 58, 411 96, 411 125
+             C 411 137, 411 145, 411 148"/>
+    <!-- h arch: branches right from stem at mid x-height, right leg descends to baseline -->
+    <path d="M 411 109
+             C 415 99, 426 91, 439 89
+             C 452 87, 460 94, 462 106
+             C 464 114, 463 130, 462 142
+             C 461 147, 461 150, 461 151"/>
+
+  </g>
+
+  <!-- i dot: solid circle, radius = half stroke-width -->
+  <circle fill="#5B7B4E" cx="322" cy="56" r="8"/>
+
+</svg>

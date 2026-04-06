@@ -21,7 +21,7 @@ hubs:
   - id: adr-index
     path: docs/app/adr/README.md
     title: ADR Index
-    description: Index of all 14 Architectural Decision Records
+    description: Index of all 15 Architectural Decision Records
 
   - id: security
     path: docs/platform/security.md
@@ -83,6 +83,11 @@ docs:
 
   - id: howto-add-provider
     path: docs/app/how-to/add-new-llm-provider.md
+    type: how-to
+    component: app
+
+  - id: howto-deploy-worker
+    path: docs/app/how-to/deploy-worker.md
     type: how-to
     component: app
 
@@ -231,6 +236,11 @@ docs:
 
   - id: adr-014
     path: docs/app/adr/014-draft-save-on-dismiss.md
+    type: adr
+    component: app
+
+  - id: adr-015
+    path: docs/app/adr/015-cloudflare-worker-proxy.md
     type: adr
     component: app
 

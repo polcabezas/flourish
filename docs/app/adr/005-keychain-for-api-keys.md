@@ -1,6 +1,6 @@
 # ADR-005: Keychain for API Key Storage
 
-**Status:** Accepted  
+**Status:** Superseded by [ADR-015](015-cloudflare-worker-proxy.md)  
 **Date:** 2026-04
 
 ---

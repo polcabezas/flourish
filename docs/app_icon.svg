@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- App icon: cream background, "f" mark centered with ~20% padding -->
+  <rect width="1024" height="1024" fill="#F8F7F4"/>
+  <!--
+    "f" viewBox: "12 -7 110 181"
+    Scale to ~78% of 1024 height: scale = 799/181 ≈ 4.414
+    Mark dims: 110*4.414=485 × 181*4.414=799
+    Centered: offsetX=(1024-485)/2=269, offsetY=(1024-799)/2=112
+    Transform: translate(269,112) scale(4.414) translate(-12,7)
+  -->
+  <g transform="translate(269,112) scale(4.414) translate(-12,7)">
+    <g stroke="#5B7B4E" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M 57 148 C 57 131, 55 103, 54 74
+               C 53 54, 55 40, 60 31
+               C 65 21, 79 19, 90 25
+               C 96 30, 93 37, 88 35"/>
+      <path d="M 38 102 C 50 100, 58 100, 80 101"/>
+    </g>
+  </g>
+</svg>

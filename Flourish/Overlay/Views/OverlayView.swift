@@ -47,7 +47,6 @@ struct OverlayView: View {
                 HStack(spacing: FS.sm) {
                     ProfilePickerView(selectedProfileId: $selectedProfileId)
                     Spacer()
-                    ProviderPickerView()
                     ImproveButton {
                         Task { @MainActor in OverlayWindowController.shared.dismiss(paste: true) }
                     }

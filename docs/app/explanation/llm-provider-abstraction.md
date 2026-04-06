@@ -1,18 +1,14 @@
 # LLM Provider Abstraction
 
-Why Flourish uses a protocol to abstract LLM providers, and how the design makes adding new providers safe and straightforward.
+Why Flourish uses a protocol to abstract LLM access, and how the Cloudflare Worker proxy architecture fulfills the original goals of that protocol.
 
 ---
 
-## The problem
+## The original problem
 
-Flourish supports multiple LLM providers (OpenRouter, Groq) and needs to be able to add more without touching the code that *uses* LLM responses. The calling code in `OverlayWindowController.runLLM()` should not care whether it's talking to OpenRouter or Groq — it just wants to send text and get back improved text, token counts, and model metadata.
+Flourish needs to send prompt text to an LLM and receive improved text back. The calling code in `OverlayWindowController.runLLM()` should not care about which provider is used, how requests are authenticated, or what the wire format looks like — it just wants to send text and get back improved text with token metadata.
 
-Without abstraction, `runLLM()` would contain a `switch` statement that duplicates the full HTTP call logic for each provider. Adding a third provider would require modifying `runLLM()` directly.
-
----
-
-## The protocol
+The `LLMService` protocol captures this contract:
 
 ```swift
 protocol LLMService {
@@ -24,46 +20,55 @@ protocol LLMService {
 }
 ```
 
-This is the entire interface surface that `runLLM()` depends on. It has exactly one method. Both `OpenRouterService` and `GroqService` implement it.
+This is the entire interface surface that `runLLM()` depends on.
 
-The call site in `OverlayWindowController`:
+---
+
+## Current architecture: single proxy implementation
+
+With the move to a Cloudflare Worker proxy (ADR-015), there is now one concrete implementation: `FlourishProxyService`. The call site in `OverlayWindowController` is simple:
 
 ```swift
-let service: LLMService
-switch Defaults.activeProviderEnum {
-case .openRouter: service = OpenRouterService(apiKey: apiKey, model: selectedModel)
-case .groq:       service = GroqService(apiKey: apiKey, model: selectedModel)
-}
-let response = try await service.improvePrompt(text, systemPrompt: systemPrompt, model: selectedModel)
+let service: LLMService = FlourishProxyService()
+let response = try await service.improvePrompt(text, systemPrompt: systemPrompt, model: "")
 ```
 
-Adding a third provider means adding one `case` to this switch — not modifying any of the LLM response handling, history saving, or paste logic below it.
+There is no `switch` statement over providers, no API key retrieval, and no model selection in the app. The Worker handles all of that.
+
+The protocol is retained because:
+- It makes testing straightforward: inject a mock `LLMService` conformance in tests to avoid real HTTP calls.
+- If a second implementation is ever needed (e.g., a local model via MLX), the call site does not change.
+
+---
+
+## Where provider and model decisions now live
+
+Provider and model are controlled at the Worker level, not in the app:
+
+```
+cloudflare/wrangler.toml
+    ACTIVE_PROVIDER = "openrouter"
+    ACTIVE_MODEL    = "google/gemini-2.0-flash-001"
+```
+
+Changing provider or model requires `wrangler deploy` only — no app rebuild. This is the key architectural benefit of moving selection to the Worker: iteration on model quality is decoupled from the app release cycle.
 
 ---
 
 ## Services are not singletons
 
-`OpenRouterService` and `GroqService` are instantiated **per-call** with the API key and model injected at construction time:
+`FlourishProxyService` is instantiated **per-call**:
 
 ```swift
-OpenRouterService(apiKey: apiKey, model: selectedModel)
+let service = FlourishProxyService()
 ```
 
 This design:
-- Avoids shared mutable state in services.
+- Avoids shared mutable state.
 - Makes testing easy: pass a mock `LLMService` conformance.
-- Ensures the service always uses the most current key and model at call time (no stale cached values).
+- Ensures the service always reads `Info.plist` values at call time (no stale cached config).
 
 Contrast with window controllers and stores, which are singletons because AppKit requires a single instance managing each window or database connection.
-
----
-
-## Why not a class hierarchy
-
-A base class with override hooks was considered. The protocol approach was chosen because:
-- Both providers are already OpenAI-compatible. The shared logic (request/response shape) is a few lines, not a complex class hierarchy.
-- Protocol witnesses are dispatched statically where possible, which is slightly more efficient than virtual dispatch.
-- The interface is narrow — one method — making a shared base class overkill.
 
 ---
 
@@ -78,7 +83,7 @@ A base class with override hooks was considered. The protocol approach was chose
 
 ## LLMError centralizes user-facing messages
 
-Rather than returning different error types per provider, both services throw `LLMError`. This centralizes the mapping from HTTP status codes to user-facing messages in one enum. The overlay presents the `localizedDescription` of whatever `LLMError` is thrown — the presenting code never needs to know which provider threw it.
+Both `FlourishProxyService` and any future implementations throw `LLMError`. This centralizes the mapping from HTTP status codes to user-facing messages in one enum. The overlay presents the `localizedDescription` of whatever `LLMError` is thrown — the presenting code never needs to know the details of where the error came from.
 
 ---
 
@@ -95,13 +100,15 @@ struct MockLLMService: LLMService {
 }
 ```
 
-Inject it into `OverlayWindowController` during tests to avoid real HTTP calls.
+Inject it into `OverlayWindowController` during tests to avoid real HTTP calls to the proxy.
 
 ---
 
 ## Related
 
 - [LLM Service API Reference](../reference/llm-service-api.md)
-- [How-To: Add a New LLM Provider](../how-to/add-new-llm-provider.md)
+- [How-To: Add Support for a New LLM Provider](../how-to/add-new-llm-provider.md)
+- [How-To: Deploy or Update the Worker](../how-to/deploy-worker.md)
 - [ADR-006: LLM Service Protocol](../adr/006-llm-service-protocol.md)
+- [ADR-015: Cloudflare Worker Proxy](../adr/015-cloudflare-worker-proxy.md)
 - [Data Models Reference](../reference/data-models.md) — `LLMResponse`, `LLMError`

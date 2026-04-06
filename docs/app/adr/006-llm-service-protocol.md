@@ -48,8 +48,10 @@ The `LLMService` protocol:
 - `OverlayWindowController.runLLM()` is provider-agnostic. ✓
 - New providers can be added without modifying existing service files. ✓
 - `LLMError` is shared across all providers — consistent user-facing messages regardless of which provider threw the error. ✓
-- Services are stateless (instantiated per-call) — no risk of stale API keys or model IDs from a cached singleton. ✓
+- Services are stateless (instantiated per-call) — no risk of stale configuration from a cached singleton. ✓
 - The protocol requires async/throws, which means all implementations must handle networking and error propagation correctly — no shortcuts. ✓
+
+**Update (ADR-015):** The protocol is retained. However, with the move to a Cloudflare Worker proxy (ADR-015), the concrete implementations `OpenRouterService` and `GroqService` were removed and replaced by a single `FlourishProxyService`. The call site in `OverlayWindowController.runLLM()` now creates `FlourishProxyService()` directly — no switch statement is needed because there is only one implementation. The protocol still provides its full value for testing via mock conformances.
 
 ---
 
@@ -57,4 +59,4 @@ The `LLMService` protocol:
 
 - [LLM Service API Reference](../reference/llm-service-api.md)
 - [LLM Provider Abstraction Explanation](../explanation/llm-provider-abstraction.md)
-- [How-To: Add a New LLM Provider](../how-to/add-new-llm-provider.md)
+- [ADR-015: Cloudflare Worker Proxy](015-cloudflare-worker-proxy.md)

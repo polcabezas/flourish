@@ -1,6 +1,6 @@
 # Data Persistence Strategy
 
-How Flourish decides what to store in Keychain, SQLite, UserDefaults, or session-only memory — and why.
+How Flourish decides what to store in Info.plist (build-time injection), SQLite, UserDefaults, or session-only memory — and why.
 
 ---
 
@@ -9,9 +9,9 @@ How Flourish decides what to store in Keychain, SQLite, UserDefaults, or session
 ```
 ┌─────────────────────────────────────────────────────┐
 │                                                     │
-│  KEYCHAIN          API keys                         │
-│  (secure, small)   Encrypted by OS. Never on disk   │
-│                    in plaintext.                    │
+│  INFO.PLIST        Proxy URL + proxy token          │
+│  (build-time)      Injected from Secrets.xcconfig.  │
+│                    Read-only at runtime.             │
 │                                                     │
 │  SQLITE (GRDB)     Prompt history                   │
 │  (queryable, large) Indexed. Capped at 500 rows.    │
@@ -28,25 +28,26 @@ How Flourish decides what to store in Keychain, SQLite, UserDefaults, or session
 └─────────────────────────────────────────────────────┘
 ```
 
+Note: The Keychain tier was previously used for OpenRouter and Groq API keys. With the move to the Cloudflare Worker proxy (ADR-015), user-facing API keys no longer exist. Provider API keys are stored as Cloudflare secrets in the Worker. The proxy bearer token is embedded in `Info.plist` at build time via `Secrets.xcconfig`.
+
 ---
 
-## Keychain: API keys
+## Info.plist (build-time injection): Proxy configuration
 
-**What goes here:** OpenRouter API key, Groq API key.
+**What goes here:** `FlourishProxyURL` (hostname of the Cloudflare Worker), `FlourishProxyToken` (bearer token for authenticating to the Worker).
 
-**Why Keychain and not UserDefaults:**
-- UserDefaults (`~/Library/Preferences/com.personal.flourish.plist`) is a plain plist on disk — readable by anyone with access to the file.
-- macOS Keychain encrypts entries using the user's login password and the OS's secure enclave where available.
-- API keys are secrets with financial consequences if leaked. The Keychain is the only acceptable storage for them.
+**Why Info.plist and not Keychain or UserDefaults:**
+- These values are set at build time by the developer and do not change at runtime — they are configuration, not user data.
+- The proxy token is a lower-stakes secret than a provider API key: it is proxy-specific, can be rate-limited at the Worker, and can be rotated by issuing a new build.
+- Injecting via `Secrets.xcconfig` → build settings → `Info.plist` is the standard iOS/macOS pattern for build-time configuration that must not be committed to source control.
 
 **Access pattern:**
-- Written once when the user enters a key in Settings.
-- Read once at the start of each `runLLM()` call.
-- Never cached in memory after retrieval (the service instance is thrown away after use).
+- Read once at the start of each `FlourishProxyService.improvePrompt` call from `Bundle.main.infoDictionary`.
+- Never written at runtime.
 
-**Implementation:** `KeychainService` (service: `"com.personal.flourish"`, account: provider rawValue).
+**Implementation:** `Secrets.xcconfig` (gitignored) → `FLOURISH_PROXY_URL` / `FLOURISH_PROXY_TOKEN` build settings → `Info.plist` keys `FlourishProxyURL` / `FlourishProxyToken`.
 
-See [ADR-005: Keychain for API Keys](../adr/005-keychain-for-api-keys.md).
+See [ADR-015: Cloudflare Worker Proxy](../adr/015-cloudflare-worker-proxy.md).
 
 ---
 
@@ -74,8 +75,6 @@ See [ADR-003: GRDB over CoreData](../adr/003-grdb-over-coredata.md).
 ## UserDefaults (Defaults package): Settings, profiles, stats
 
 **What goes here:**
-- Provider toggles, selected models, custom model IDs
-- Active provider selection
 - Guideline profiles (JSON-encoded array)
 - Last selected profile ID
 - All-time cumulative statistics (request count, tokens, cost)
@@ -134,7 +133,7 @@ See [ADR-014: Draft Saved on Dismiss](../adr/014-draft-save-on-dismiss.md).
 
 | Data | Sensitive? | Large/Growing? | Queryable? | Ephemeral? | → Store in |
 |------|-----------|----------------|-----------|-----------|-----------|
-| API keys | YES | No | No | No | Keychain |
+| Proxy URL + token | YES (build-time secret) | No | No | No | Info.plist (from Secrets.xcconfig) |
 | Prompt history | No | YES | YES | No | SQLite |
 | Profiles | No | No (bounded) | No | No | UserDefaults |
 | Settings | No | No | No | No | UserDefaults |
@@ -148,7 +147,7 @@ See [ADR-014: Draft Saved on Dismiss](../adr/014-draft-save-on-dismiss.md).
 
 - [ADR-003: GRDB over CoreData](../adr/003-grdb-over-coredata.md)
 - [ADR-004: Defaults Package](../adr/004-defaults-package.md)
-- [ADR-005: Keychain for API Keys](../adr/005-keychain-for-api-keys.md)
+- [ADR-015: Cloudflare Worker Proxy](../adr/015-cloudflare-worker-proxy.md) — explains why proxy config is in Info.plist, not Keychain
 - [ADR-010: Session Stats Separate](../adr/010-session-stats-separate.md)
 - [ADR-014: Draft Saved on Dismiss](../adr/014-draft-save-on-dismiss.md)
 - [Database Schema Reference](../reference/database-schema.md)

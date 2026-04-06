@@ -14,7 +14,7 @@ ADRs are **never modified after acceptance**. If a decision is reversed or super
 | [002](002-xcodegen.md) | XcodeGen over committed .xcodeproj | Accepted |
 | [003](003-grdb-over-coredata.md) | GRDB.swift over CoreData for history storage | Accepted |
 | [004](004-defaults-package.md) | Defaults package over raw UserDefaults | Accepted |
-| [005](005-keychain-for-api-keys.md) | Keychain for API key storage | Accepted |
+| [005](005-keychain-for-api-keys.md) | Keychain for API key storage | Superseded by ADR-015 |
 | [006](006-llm-service-protocol.md) | Protocol-based LLM service abstraction | Accepted |
 | [007](007-singleton-window-controllers.md) | Singleton pattern for window controllers | Accepted |
 | [008](008-adhoc-signing.md) | Ad-hoc code signing | Accepted |
@@ -24,6 +24,7 @@ ADRs are **never modified after acceptance**. If a decision is reversed or super
 | [012](012-history-max-entries.md) | Maximum 500 history entries | Accepted |
 | [013](013-base-prompt-placeholder.md) | `{guidelines}` placeholder in base prompt template | Accepted |
 | [014](014-draft-save-on-dismiss.md) | Save draft on dismiss, not on every keystroke | Accepted |
+| [015](015-cloudflare-worker-proxy.md) | Cloudflare Worker proxy for LLM API access | Accepted |
 
 ---
 

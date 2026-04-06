@@ -7,7 +7,7 @@
 
 ## Decision
 
-Implement `OverlayWindowController`, `LoaderWindowController`, `MainWindowController`, `MenuBarManager`, `HistoryStore`, `KeychainService`, `PasteService`, and `SessionStatsTracker` as singletons via a `static let shared = Self()` pattern.
+Implement `OverlayWindowController`, `LoaderWindowController`, `MainWindowController`, `MenuBarManager`, `HistoryStore`, `PasteService`, and `SessionStatsTracker` as singletons via a `static let shared = Self()` pattern.
 
 ---
 

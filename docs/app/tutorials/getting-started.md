@@ -8,7 +8,7 @@
 - macOS 13.0 or later
 - Xcode 15 or later
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen) installed (`brew install xcodegen`)
-- An API key for either [OpenRouter](https://openrouter.ai) or [Groq](https://console.groq.com)
+- `Flourish/Config/Secrets.xcconfig` with the proxy URL and token (obtain from the team)
 
 ---
 
@@ -21,7 +21,26 @@ cd Flourish
 
 ---
 
-## Step 2 — Generate the Xcode project
+## Step 2 — Set up Secrets.xcconfig
+
+The app connects to a Cloudflare Worker proxy for LLM requests. The proxy URL and bearer token are stored in a gitignored config file:
+
+```bash
+cp Flourish/Config/Secrets.xcconfig.example Flourish/Config/Secrets.xcconfig
+```
+
+Open `Flourish/Config/Secrets.xcconfig` and fill in the values (get them from the team):
+
+```
+FLOURISH_PROXY_URL   = flourish-proxy.yoursubdomain.workers.dev
+FLOURISH_PROXY_TOKEN = <proxy bearer token>
+```
+
+The URL must be the hostname only — no `https://` prefix.
+
+---
+
+## Step 3 — Generate the Xcode project
 
 Flourish uses XcodeGen instead of a committed `.xcodeproj`. The project is generated from `project.yml`:
 
@@ -33,7 +52,7 @@ This runs `xcodegen generate` and pins DerivedData to `./build/DerivedData`.
 
 ---
 
-## Step 3 — Open in Xcode
+## Step 4 — Open in Xcode
 
 ```bash
 make open
@@ -43,7 +62,7 @@ This generates the project (if needed) and opens it in Xcode.
 
 ---
 
-## Step 4 — Build and run
+## Step 5 — Build and run
 
 In Xcode, press **Cmd+R** to build and run. No code signing configuration is required — the app uses ad-hoc signing.
 
@@ -53,25 +72,13 @@ When the app launches:
 
 ---
 
-## Step 5 — Open Flourish's main window
+## Step 6 — Open Flourish's main window
 
 Click the wand icon in the menu bar, or right-click and choose **Open Flourish**.
 
 The main window opens with a sidebar: **Home**, **Profiles**, **Settings**.
 
----
-
-## Step 6 — Add an API key
-
-Click **Settings** in the sidebar.
-
-Under **Providers**, find the provider you have an API key for (OpenRouter or Groq):
-1. Toggle the provider **on**.
-2. Paste your API key into the secure field.
-3. Click **Test** to verify connectivity.
-4. Select the provider as **Active** using the segmented control at the top.
-
-If you don't have an API key yet, see [Add Your First Provider](add-your-first-provider.md).
+No API key setup is needed. Flourish connects to the team's LLM proxy automatically using the credentials embedded at build time.
 
 ---
 
@@ -91,7 +98,7 @@ If you don't have an API key yet, see [Add Your First Provider](add-your-first-p
 
 When you pressed Return:
 - Flourish captured the previously focused app before showing the overlay.
-- Your text was sent to the active LLM provider (via the OpenRouter or Groq API).
+- Your text was sent to the Cloudflare Worker proxy, which forwarded it to the configured LLM provider.
 - The response was written to your clipboard.
 - Your previous app was reactivated.
 - A synthetic Cmd+V keystroke pasted the improved text.
@@ -104,6 +111,6 @@ See [Prompt Improvement Workflow](../explanation/prompt-improvement-workflow.md)
 
 ## Next Steps
 
-- [Add Your First Provider](add-your-first-provider.md) — detailed provider setup
 - [Create a Custom Profile](create-custom-profile.md) — tailor the AI's behavior
 - [Keyboard Shortcuts Reference](../reference/keyboard-shortcuts.md) — all bindings
+- [How-To: Deploy or Update the Worker](../how-to/deploy-worker.md) — change provider or model (founders only)

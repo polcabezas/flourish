@@ -94,25 +94,8 @@ final class OverlayWindowController: NSWindowController {
 
     @MainActor
     private func runLLM(text: String) async {
-        let providerEnum = Defaults.activeProviderEnum
-        let model: String
-        let service: LLMService
-
-        guard let apiKey = KeychainService.shared.load(for: providerEnum) else {
-            LoaderWindowController.shared.hide()
-            showError(LLMError.missingAPIKey(providerEnum))
-            return
-        }
-
-        switch providerEnum {
-        case .openRouter:
-            service = OpenRouterService(apiKey: apiKey)
-            model = Defaults[.openRouterModel]
-        case .groq:
-            service = GroqService(apiKey: apiKey)
-            model = Defaults[.groqModel]
-        }
-
+        let service = FlourishProxyService()
+        let model = ""  // controlled by Cloudflare Worker env vars
         let guidelines = Defaults.selectedProfile()?.systemPrompt ?? ""
 
         do {

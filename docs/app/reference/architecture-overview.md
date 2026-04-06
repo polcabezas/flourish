@@ -27,8 +27,8 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │                   Service Layer                      │   │
 │  │  LLMService (protocol)                               │   │
-│  │    OpenRouterService    GroqService                  │   │
-│  │  HistoryStore (GRDB)    KeychainService              │   │
+│  │    FlourishProxyService                              │   │
+│  │  HistoryStore (GRDB)                                 │   │
 │  │  PasteService           SessionStatsTracker          │   │
 │  │  BasePrompt             AppSettings (Defaults)       │   │
 │  └──────────────────────────────────────────────────────┘   │
@@ -36,11 +36,18 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
 │                          ▼                                  │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │                   macOS APIs                         │   │
-│  │  NSPasteboard  CGEvent  AX API  Keychain  SQLite     │   │
+│  │  NSPasteboard  CGEvent  AX API  SQLite               │   │
 │  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
                            │
                            ▼ HTTPS
+         ┌─────────────────────────────────┐
+         │     Cloudflare Worker Proxy      │
+         │  https://<FLOURISH_PROXY_URL>   │
+         │  /improve                        │
+         └──────────────┬──────────────────┘
+                        │
+                        ▼ HTTPS (provider API key held in Worker secrets)
          ┌─────────────────────────────────┐
          │         External APIs           │
          │  openrouter.ai/api/v1           │
@@ -79,14 +86,13 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
 
 | View | File | Responsibility |
 |------|------|----------------|
-| `OverlayView` | `Overlay/Views/OverlayView.swift` | Input `TextEditor`, toolbar row (profile picker, provider picker, submit button), hints row |
+| `OverlayView` | `Overlay/Views/OverlayView.swift` | Input `TextEditor`, toolbar row (profile picker, submit button), hints row |
 | `ProfilePickerView` | `Overlay/Views/ProfilePickerView.swift` | Profile dropdown in the overlay toolbar |
-| `ProviderPickerView` | `Overlay/Views/ProviderPickerView.swift` | Provider selection in the overlay toolbar |
 | `LoaderView` | `Loader/LoaderView.swift` | 3-dot pulsing animation view |
 | `MainWindowView` | `Main/MainWindowView.swift` | Sidebar (`NavigationSplitView`) + content router |
 | `HomeView` | `Main/HomeView.swift` | Welcome header, stats badges, hero card, history timeline |
 | `ProfilesView` | `Main/ProfilesView.swift` | Profile list with edit/delete; triggers `ProfileEditSheet` |
-| `SettingsPanelView` | `Main/SettingsPanelView.swift` | All settings in a single scrollable view: Providers, Shortcut, Base Prompt, General |
+| `SettingsPanelView` | `Main/SettingsPanelView.swift` | All settings in a single scrollable view: Shortcut, Base Prompt, General |
 | `ProfileEditSheet` | `Settings/Tabs/ProfileEditSheet.swift` | Modal sheet for creating/editing a custom profile |
 | `HistoryView` | `History/Views/HistoryView.swift` | `HSplitView` container for history list + detail |
 | `HistoryListView` | `History/Views/HistoryListView.swift` | Left panel: search bar + scrollable history entries |
@@ -97,13 +103,18 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
 | Service | File | Responsibility |
 |---------|------|----------------|
 | `LLMService` (protocol) | `Core/Services/LLMService.swift` | Defines `improvePrompt(_:systemPrompt:model:) async throws -> LLMResponse` |
-| `OpenRouterService` | `Core/Services/OpenRouterService.swift` | Implements `LLMService` for the OpenRouter API |
-| `GroqService` | `Core/Services/GroqService.swift` | Implements `LLMService` for the Groq API |
+| `FlourishProxyService` | `Core/Services/FlourishProxyService.swift` | Implements `LLMService`. Reads `FlourishProxyURL` and `FlourishProxyToken` from `Bundle.main.infoDictionary`. POSTs to the Cloudflare Worker `/improve` endpoint |
 | `BasePrompt` | `Core/Services/BasePrompt.swift` | Builds the system prompt by substituting `{guidelines}` with the selected profile's text |
 | `HistoryStore` | `Core/Services/HistoryStore.swift` | GRDB SQLite store. CRUD + search + max-500 enforcement |
-| `KeychainService` | `Core/Services/KeychainService.swift` | macOS Keychain CRUD for API keys |
 | `PasteService` | `Core/Services/PasteService.swift` | Captures previous app, writes to clipboard, simulates Cmd+V via CGEvent, restores clipboard |
 | `SessionStatsTracker` | `Core/Services/SessionStatsTracker.swift` | Accumulates per-launch stats (requests, tokens, cost) in memory |
+
+### Cloudflare Worker
+
+| File | Responsibility |
+|------|----------------|
+| `cloudflare/worker.js` | Receives `/improve` requests from the app. Validates bearer token. Reads `ACTIVE_PROVIDER` and `ACTIVE_MODEL` from environment. Forwards to provider using API key from Cloudflare secrets. Returns normalized response |
+| `cloudflare/wrangler.toml` | Deploy configuration. `ACTIVE_PROVIDER` and `ACTIVE_MODEL` set here as plain vars. Provider API keys and `FLOURISH_PROXY_TOKEN` stored as Cloudflare secrets (not in this file) |
 
 ### Models
 
@@ -111,8 +122,6 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
 |-------|------|----------------|
 | `GuidelineProfile` | `Core/Models/GuidelineProfile.swift` | Named system prompt template; `Defaults.Serializable` |
 | `HistoryEntry` | `Core/Models/HistoryEntry.swift` | SQLite row; GRDB `FetchableRecord` + `MutablePersistableRecord` |
-| `LLMProvider` | `Core/Models/LLMProvider.swift` | Enum `openRouter` / `groq` with display names and raw string values |
-| `ModelOption` | `Core/Models/ModelOption.swift` | Model metadata: id, display name, per-token pricing |
 
 ### Design System
 
@@ -163,17 +172,18 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
         ↓
 5.  OverlayPanel shown, makeKey()
         ↓
-6.  User types prompt, selects profile + provider
+6.  User types prompt and selects profile
         ↓
 7.  User presses Return → OverlayWindowController.dismiss(paste: true)
         ↓
 8.  LoaderWindowController.shared.show()
         ↓
 9.  OverlayWindowController.runLLM()  [async Task]
-        ├── KeychainService.shared.load(for: activeProvider) → apiKey
         ├── BasePrompt.build(profile:) → systemPrompt
-        ├── LLMService (OpenRouterService or GroqService)
-        │       .improvePrompt(text, systemPrompt, model) → LLMResponse
+        ├── FlourishProxyService()
+        │       .improvePrompt(text, systemPrompt, model: "")
+        │       → POST https://<FLOURISH_PROXY_URL>/improve
+        │       ← LLMResponse { text, tokensIn, tokensOut, model }
         ├── PasteService.shared.paste(text: response.text)
         │       ├── NSPasteboard.general.setString(improved)
         │       ├── NSWorkspace.shared.frontmostApplication.activate()
@@ -219,10 +229,9 @@ OverlayWindowController
   ├── OverlayViewModel          (state)
   ├── LoaderWindowController.shared
   ├── PasteService.shared
-  ├── KeychainService.shared
   ├── HistoryStore.shared
   ├── SessionStatsTracker.shared
-  └── LLMService (instantiated per call)
+  └── FlourishProxyService (instantiated per call)
 
 MenuBarManager
   └── MainWindowController.shared (open)
@@ -240,3 +249,4 @@ MainWindowController
 - [Data Persistence Strategy](../explanation/data-persistence-strategy.md)
 - [Overlay Focus Model](../explanation/overlay-focus-model.md)
 - [Prompt Improvement Workflow](../explanation/prompt-improvement-workflow.md)
+- [ADR-015: Cloudflare Worker Proxy](../adr/015-cloudflare-worker-proxy.md)

@@ -4,31 +4,7 @@ All `Defaults.Key` definitions used by Flourish, their types, default values, an
 
 Defined in `Flourish/Core/AppSettings.swift`. Accessed via the `Defaults` package's `@Default` property wrapper in views, or `Defaults[.keyName]` in services.
 
----
-
-## Provider Settings
-
-### OpenRouter
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `openRouterEnabled` | `Bool` | `false` | Whether OpenRouter is enabled and visible in pickers |
-| `openRouterModel` | `String` | `"google/gemini-2.0-flash-001"` | Selected model ID for OpenRouter requests |
-| `openRouterCustomModels` | `[String]` | `[]` | User-added custom model IDs for OpenRouter |
-
-### Groq
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `groqEnabled` | `Bool` | `false` | Whether Groq is enabled and visible in pickers |
-| `groqModel` | `String` | `"llama-3.3-70b-versatile"` | Selected model ID for Groq requests |
-| `groqCustomModels` | `[String]` | `[]` | User-added custom model IDs for Groq |
-
-### Active Provider
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `activeProvider` | `String` | `"openrouter"` | Raw value of the active `LLMProvider` enum case. Read via `Defaults.activeProviderEnum` computed property |
+**Note:** All provider-related settings keys (`openRouterEnabled`, `openRouterModel`, `groqEnabled`, `groqModel`, `activeProvider`, etc.) were removed when the app moved to the Cloudflare Worker proxy architecture (ADR-015). Provider and model are now configured in `cloudflare/wrangler.toml`, not in the app.
 
 ---
 
@@ -85,33 +61,17 @@ These two keys are written directly to `UserDefaults.standard`, not through the 
 ### In SwiftUI views
 
 ```swift
-@Default(.openRouterEnabled) var openRouterEnabled: Bool
-
-// Reads and writes automatically:
-Toggle("Enable OpenRouter", isOn: $openRouterEnabled)
+@Default(.lastSelectedProfileId) var lastSelectedProfileId: String
 ```
 
 ### In services / controllers
 
 ```swift
 // Read:
-let model = Defaults[.openRouterModel]
+let profileId = Defaults[.lastSelectedProfileId]
 
 // Write:
 Defaults[.totalRequestCount] += 1
-```
-
-### Computed property: active provider enum
-
-`AppSettings.swift` provides a convenience extension:
-
-```swift
-extension Defaults {
-    static var activeProviderEnum: LLMProvider {
-        get { LLMProvider(rawValue: Defaults[.activeProvider]) ?? .openRouter }
-        set { Defaults[.activeProvider] = newValue.rawValue }
-    }
-}
 ```
 
 ---
@@ -121,3 +81,4 @@ extension Defaults {
 - [Data Persistence Strategy](../explanation/data-persistence-strategy.md)
 - [Data Models Reference](data-models.md) — `GuidelineProfile` definition
 - [ADR-004: Defaults Package](../adr/004-defaults-package.md)
+- [ADR-015: Cloudflare Worker Proxy](../adr/015-cloudflare-worker-proxy.md) — explains removal of provider keys

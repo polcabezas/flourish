@@ -32,5 +32,9 @@
 	<string>Flourish uses Apple Events to interact with other applications.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Personal use</string>
+	<key>FlourishProxyURL</key>
+	<string>$(FLOURISH_PROXY_URL)</string>
+	<key>FlourishProxyToken</key>
+	<string>$(FLOURISH_PROXY_TOKEN)</string>
 </dict>
 </plist>

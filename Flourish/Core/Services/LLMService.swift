@@ -23,7 +23,6 @@ struct LLMResponse {
 // MARK: - Errors
 
 enum LLMError: LocalizedError {
-    case missingAPIKey(LLMProvider)
     case emptyInput
     case badRequest(String)
     case unauthorized
@@ -35,20 +34,18 @@ enum LLMError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .missingAPIKey(let p):
-            return "No API key for \(p.displayName). Add it in Settings → Providers."
         case .emptyInput:
             return "Prompt is empty."
         case .badRequest(let msg):
             return "Bad request: \(msg)"
         case .unauthorized:
-            return "Invalid API key. Check your key in Settings → Providers."
+            return "Authorization failed. Please contact support."
         case .billingError:
-            return "Billing issue. Check your account balance at openrouter.ai/credits."
+            return "Service billing issue. Please contact support."
         case .rateLimited:
             return "Rate limit reached. Wait a moment and try again."
         case .serverError(let code):
-            return "Server error (\(code)). The provider may be temporarily unavailable."
+            return "Server error (\(code)). The service may be temporarily unavailable."
         case .invalidResponse:
             return "Unexpected response format from the API."
         case .noContent:

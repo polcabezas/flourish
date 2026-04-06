@@ -52,3 +52,6 @@ Podfile.lock
 
 # Context scratch files
 flourish-context.txt
+
+# Secrets — never commit real proxy credentials
+Flourish/Config/Secrets.xcconfig

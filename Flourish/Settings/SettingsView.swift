@@ -10,3 +10,17 @@ struct SettingsView: View {
             .frame(width: FS.settingsWindowWidth, height: FS.settingsWindowHeight)
     }
 }
+
+// MARK: - Shared Settings Label
+
+struct SectionLabel: View {
+    let text: String
+    init(_ text: String) { self.text = text }
+    var body: some View {
+        Text(text)
+            .font(.flourishMeta)
+            .foregroundColor(.flourishTextSecondary)
+            .textCase(.uppercase)
+            .tracking(0.5)
+    }
+}

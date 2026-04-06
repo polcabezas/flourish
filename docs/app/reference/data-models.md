@@ -55,7 +55,7 @@ struct HistoryEntry: Identifiable {
     let createdAt: Date
     let originalPrompt: String
     let improvedPrompt: String
-    let provider: String          // LLMProvider.rawValue
+    let provider: String          // Provider identifier (from model ID prefix or proxy response)
     let modelId: String
     var tokensIn: Int
     var tokensOut: Int
@@ -69,7 +69,7 @@ struct HistoryEntry: Identifiable {
 | `createdAt` | `Date` | `created_at` (indexed) | UTC timestamp of the improvement |
 | `originalPrompt` | `String` | `original_prompt` | User's original text |
 | `improvedPrompt` | `String` | `improved_prompt` | LLM's output |
-| `provider` | `String` | `provider` | Raw value: `"openrouter"` or `"groq"` |
+| `provider` | `String` | `provider` | Provider identifier derived from the model ID returned by the proxy (e.g., `"google"`, `"openai"`, `"groq"`) |
 | `modelId` | `String` | `model_id` | Exact model identifier used |
 | `tokensIn` | `Int` | `tokens_in` | Prompt token count |
 | `tokensOut` | `Int` | `tokens_out` | Completion token count |
@@ -87,31 +87,7 @@ let cost = (Double(tokensIn) / 1_000_000.0) * model.pricePerMTokenIn
          + (Double(tokensOut) / 1_000_000.0) * model.pricePerMTokenOut
 ```
 
-Groq models have `pricePerMTokenIn = 0` and `pricePerMTokenOut = 0` (free tier).
-
----
-
-## LLMProvider
-
-**File:** `Core/Models/LLMProvider.swift`
-
-Enum representing supported LLM providers.
-
-```swift
-enum LLMProvider: String, CaseIterable, Codable, Defaults.Serializable {
-    case openRouter = "openrouter"
-    case groq       = "groq"
-}
-```
-
-| Case | Raw Value | Display Name |
-|------|-----------|--------------|
-| `.openRouter` | `"openrouter"` | OpenRouter |
-| `.groq` | `"groq"` | Groq |
-
-The raw value is used as:
-- The `Defaults[.activeProvider]` persisted string
-- The Keychain account identifier for the API key
+Groq models have `pricePerMTokenIn = 0` and `pricePerMTokenOut = 0` (free tier). If the model ID returned by the proxy does not match any `ModelOption` entry, cost defaults to `$0.00`.
 
 ---
 
@@ -119,7 +95,7 @@ The raw value is used as:
 
 **File:** `Core/Models/ModelOption.swift`
 
-Metadata for a single LLM model, used to populate the model picker and calculate costs.
+Metadata for a single LLM model, used to calculate per-request cost estimates from token counts. The model list is no longer surfaced in the UI — it is used only for cost calculation when the model ID in `LLMResponse.model` matches a known entry.
 
 ```swift
 struct ModelOption: Identifiable, Equatable {

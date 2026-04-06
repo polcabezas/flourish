@@ -6,36 +6,46 @@ Cross-cutting security standards and threat model for the Flourish macOS applica
 
 ## Threat Model
 
-Flourish operates in a threat model where the primary concern is:
-1. **API key exposure** — keys grant access to paid LLM services.
+Flourish operates in a threat model where the primary concerns are:
+1. **Proxy token exposure** — the bearer token embedded in the app authenticates to the Cloudflare Worker; if extracted, an attacker could use it to make proxied LLM requests at the company's expense.
 2. **Clipboard interception** — the app reads and writes the system clipboard.
 3. **Synthetic input injection** — the app posts synthetic keystrokes via CGEvent.
 
 Flourish does not:
 - Store any of the user's actual prompts in the cloud.
-- Transmit any data other than the text the user explicitly types in the overlay (sent to the selected LLM provider's API).
-- Have network access beyond the two provider API endpoints.
+- Transmit any data other than the text the user explicitly types in the overlay (sent to the Cloudflare Worker proxy, which forwards it to the configured LLM provider).
+- Have network access beyond the single proxy endpoint.
 - Run background daemons or install kernel extensions.
 
 ---
 
 ## API Key Security
 
-**Storage:** macOS Keychain  
-**Service:** `com.personal.flourish`  
-**Accounts:** `openrouter`, `groq`
+LLM provider API keys (OpenRouter, Groq) are **never present in the app binary or on user devices**. They are stored as Cloudflare secrets in the Worker and are not visible in `worker.js`, `wrangler.toml`, the Cloudflare dashboard logs, or any distributed artifact.
 
-API keys are written to the Keychain when the user saves settings, and read from the Keychain at the start of each LLM request. They are never written to disk in plaintext, never included in logs, and never exposed in crash reports.
+See [ADR-015: Cloudflare Worker Proxy](../app/adr/015-cloudflare-worker-proxy.md).
 
-The Keychain is encrypted with the user's login password. Items are accessible only when the user's session is unlocked.
+---
 
-**Note on ad-hoc signing:** Without a Developer ID, Keychain access control is limited to the standard (not data-protected) class. Biometric authentication (Touch ID / Face ID) cannot be required for Keychain access in this configuration. See [ADR-005](../app/adr/005-keychain-for-api-keys.md) and [ADR-008](../app/adr/008-adhoc-signing.md).
+## Proxy Bearer Token
+
+**Storage:** `Secrets.xcconfig` (gitignored) → `Info.plist` (build-time injection)  
+**Runtime access:** Read from `Bundle.main.infoDictionary` by `FlourishProxyService`
+
+The proxy bearer token (`FLOURISH_PROXY_TOKEN`) authenticates Flourish app instances to the Cloudflare Worker. It is:
+- Never hardcoded in source files.
+- Injected into the binary at build time via `Secrets.xcconfig` → build settings → `Info.plist`.
+- Not stored in the Keychain (it is a build-time constant, not a user-managed secret).
+
+**Risk:** A determined attacker can extract the token from a distributed binary using `strings` or a disassembler. This is an accepted trade-off at the current stage. Mitigation options include per-device tokens, short-lived JWTs, or certificate pinning — these can be added to the Worker without an app change.
+
+**Rotation:** Update the Cloudflare secret (`wrangler secret put FLOURISH_PROXY_TOKEN`) and issue a new app build.
 
 ---
 
 ## Accessibility Permission
 
-Flourish requests the Accessibility permission (`com.apple.private.accessibility.inspection.install`) to post `CGEvent` synthetic keystrokes.
+Flourish requests the Accessibility permission to post `CGEvent` synthetic keystrokes.
 
 **Scope:** The permission is used exclusively to simulate Cmd+V after an LLM response is received. No other accessibility APIs are used.
 
@@ -59,18 +69,18 @@ Flourish reads the clipboard contents at overlay open time to save and restore t
 
 ## Network Security
 
-All LLM API calls use HTTPS with TLS. `URLSession` enforces certificate validation by default (App Transport Security).
+All outbound network calls use HTTPS with TLS. `URLSession` enforces certificate validation by default (App Transport Security).
 
-Flourish sends to exactly two endpoints:
-- `https://openrouter.ai/api/v1/chat/completions`
-- `https://api.groq.com/openai/v1/chat/completions`
+Flourish sends to exactly one endpoint:
+- `https://<FLOURISH_PROXY_URL>/improve` — the Cloudflare Worker proxy
+
+The Worker then calls the configured LLM provider (OpenRouter or Groq) server-side. The app itself never contacts provider APIs directly.
 
 No other network calls are made. No analytics, no telemetry, no update checks.
 
-The only data sent to these endpoints:
+The only data sent to the proxy:
 - The assembled system prompt (base template + profile guidelines).
 - The user's typed prompt text.
-- The `HTTP-Referer: com.personal.flourish` and `X-Title: Flourish` headers (OpenRouter only — identifies the app to OpenRouter's usage dashboard, not to any Flourish server).
 
 ---
 
@@ -90,7 +100,7 @@ This is a known and accepted trade-off. See [ADR-008](../app/adr/008-adhoc-signi
 
 | Data | Location | Encryption |
 |------|----------|-----------|
-| API keys | macOS Keychain | OS-level encryption |
+| Proxy token | `Info.plist` inside the app bundle | None (embedded at build time; protected by app distribution controls) |
 | Prompt history | `~/.local/share/com.personal.flourish/history.db` | None (plaintext SQLite) |
 | Settings, profiles | `~/Library/Preferences/com.personal.flourish.plist` | None (plaintext plist) |
 | Overlay draft | `~/Library/Preferences/com.personal.flourish.plist` | None |
@@ -103,16 +113,17 @@ The prompt history and settings are stored in plaintext. Users who require encry
 
 | What | Where | When |
 |------|-------|------|
-| System prompt + user's typed text | Active LLM provider (OpenRouter or Groq) | On each overlay submit |
+| System prompt + user's typed text | Cloudflare Worker proxy (`/improve`) | On each overlay submit |
+| Worker forwards to | Configured LLM provider (OpenRouter or Groq) | On each overlay submit |
 | Nothing else | — | Never |
 
-No data is sent to any Flourish server (there is none). The app is entirely client-side.
+No data is sent to any Flourish-operated server beyond the Cloudflare Worker. The Worker is the sole intermediary.
 
 ---
 
 ## Related
 
-- [ADR-005: Keychain for API Keys](../app/adr/005-keychain-for-api-keys.md)
+- [ADR-015: Cloudflare Worker Proxy](../app/adr/015-cloudflare-worker-proxy.md)
 - [ADR-008: Ad-hoc Signing](../app/adr/008-adhoc-signing.md)
 - [Paste Automation Explanation](../app/explanation/paste-automation.md)
 - [Overlay Focus Model Explanation](../app/explanation/overlay-focus-model.md)

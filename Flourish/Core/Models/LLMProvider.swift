@@ -24,8 +24,8 @@ enum LLMProvider: String, CaseIterable, Codable, Identifiable {
 
     var defaultModel: String {
         switch self {
-        case .openRouter: return "google/gemini-2.0-flash-001"
-        case .groq: return "llama-3.1-70b-versatile"
+        case .openRouter: return "stepfun/step-3.5-flash:free"
+        case .groq: return "llama-3.1-8b-instant"
         }
     }
 

@@ -6,7 +6,7 @@ import KeyboardShortcuts
 
 // MARK: - Settings Panel View
 // Inline settings — replaces the old TabView window.
-// Sections: Shortcut · Base Prompt · General
+// Sections: Shortcut · General
 
 struct SettingsPanelView: View {
     var body: some View {
@@ -26,10 +26,6 @@ struct SettingsPanelView: View {
 
                 // Sections
                 ShortcutSection()
-
-                SectionDivider()
-
-                BasePromptSection()
 
                 SectionDivider()
 
@@ -78,74 +74,6 @@ private struct ShortcutSection: View {
         }
         .padding(.horizontal, FS.xxl)
         .padding(.top, FS.lg)
-    }
-}
-
-// MARK: - Base Prompt Section
-
-private struct BasePromptSection: View {
-    @Default(.basePromptTemplate) private var basePromptTemplate
-
-    private var isCustom: Bool {
-        !basePromptTemplate.trimmingCharacters(in: .whitespaces).isEmpty
-    }
-
-    private var missingPlaceholder: Bool {
-        isCustom && !basePromptTemplate.contains("{guidelines}")
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: FS.md) {
-            HStack {
-                PanelSectionLabel("Base Prompt")
-                Spacer()
-                if isCustom {
-                    Button("Reset to Default") {
-                        basePromptTemplate = ""
-                    }
-                    .font(.flourishMeta)
-                    .foregroundColor(.flourishAccent)
-                    .buttonStyle(.plain)
-                    .pointerCursor()
-                }
-            }
-
-            ZStack(alignment: .topLeading) {
-                if !isCustom {
-                    Text(BasePrompt.defaultTemplate)
-                        .font(.flourishMeta)
-                        .foregroundColor(.flourishTextTertiary)
-                        .padding(.horizontal, FS.sm)
-                        .padding(.vertical, FS.sm)
-                        .allowsHitTesting(false)
-                }
-                TextEditor(text: $basePromptTemplate)
-                    .font(.flourishMeta)
-                    .frame(minHeight: 160)
-                    .scrollContentBackground(.hidden)
-                    .padding(FS.xs)
-            }
-            .background(Color.flourishSurfaceRaised.opacity(0.5))
-            .cornerRadius(FS.radiusSm)
-            .overlay(
-                RoundedRectangle(cornerRadius: FS.radiusSm)
-                    .stroke(missingPlaceholder ? Color.orange.opacity(0.6) : Color.flourishBorder, lineWidth: FS.borderWidth)
-            )
-
-            if missingPlaceholder {
-                Text("⚠ Your template must include {guidelines} — otherwise profile guidelines won't be applied.")
-                    .font(.flourishMeta)
-                    .foregroundColor(.orange)
-                    .fixedSize(horizontal: false, vertical: true)
-            } else {
-                Text("Use {guidelines} where profile guidelines are inserted. Leave empty to use the built-in default.")
-                    .font(.flourishMeta)
-                    .foregroundColor(.flourishTextTertiary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .padding(.horizontal, FS.xxl)
-        .padding(.top, 0)
     }
 }
 

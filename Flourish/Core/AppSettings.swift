@@ -8,6 +8,7 @@ extension Defaults.Keys {
     // MARK: Profiles
     static let profiles              = Key<[GuidelineProfile]>("profiles",              default: [])
     static let lastSelectedProfileId = Key<String>("lastSelectedProfileId",             default: "")
+    static let targetPlatform        = Key<TargetPlatform>("targetPlatform",            default: .generic)
 
     // MARK: Stats — All-time totals
     static let totalRequestCount = Key<Int>("totalRequestCount",    default: 0)

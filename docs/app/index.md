@@ -34,7 +34,7 @@ Documentation for the Flourish macOS application — a menu bar prompt-improveme
 - [Architecture Overview](reference/architecture-overview.md) — Full component map and data flow
 - [Design System](reference/design-system.md) — Colors, typography, spacing, and layout constants
 - [App Settings](reference/app-settings.md) — All `Defaults.Key` definitions and their types
-- [Data Models](reference/data-models.md) — Swift model types: GuidelineProfile, HistoryEntry
+- [Data Models](reference/data-models.md) — Swift model types: GuidelineProfile, HistoryEntry, TargetPlatform, ModelOption
 - [LLM Service API](reference/llm-service-api.md) — Protocol, FlourishProxyService, request/response shape, error types
 - [Keyboard Shortcuts](reference/keyboard-shortcuts.md) — All keyboard bindings in overlay and main window
 - [Database Schema](reference/database-schema.md) — SQLite schema, migrations, and query patterns
@@ -52,4 +52,4 @@ Documentation for the Flourish macOS application — a menu bar prompt-improveme
 
 ## ADRs
 
-See [ADR Index](adr/README.md) for the full list of 15 architectural decisions.
+See [ADR Index](adr/README.md) for the full list of 20 architectural decisions.

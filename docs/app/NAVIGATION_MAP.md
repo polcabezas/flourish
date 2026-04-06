@@ -58,7 +58,8 @@ explanation/overlay-focus-model
 explanation/prompt-improvement-workflow
   ├── → explanation/paste-automation
   ├── → reference/llm-service-api
-  └── → reference/database-schema
+  ├── → reference/database-schema
+  └── → adr/016-target-platform-formatting
 
 explanation/data-persistence-strategy
   ├── → adr/003-grdb-over-coredata

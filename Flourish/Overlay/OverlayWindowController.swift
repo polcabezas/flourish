@@ -11,22 +11,19 @@ final class OverlayWindowController: NSWindowController {
     private let panel: OverlayPanel
     private var escapeMonitor: Any?
     private var viewModel = OverlayViewModel()
+    private let hostingController: NSHostingController<OverlayView>
 
     private init() {
         panel = OverlayPanel()
-        super.init(window: panel)
 
         let view = OverlayView(viewModel: viewModel)
-        let hostingView = NSHostingView(rootView: view)
-        hostingView.translatesAutoresizingMaskIntoConstraints = false
+        hostingController = NSHostingController(rootView: view)
+        // Tells the window to resize itself whenever the SwiftUI view's
+        // preferred content size changes (i.e. as the user types).
+        hostingController.sizingOptions = .preferredContentSize
 
-        panel.contentView = hostingView
-        NSLayoutConstraint.activate([
-            hostingView.leadingAnchor.constraint(equalTo: panel.contentView!.leadingAnchor),
-            hostingView.trailingAnchor.constraint(equalTo: panel.contentView!.trailingAnchor),
-            hostingView.topAnchor.constraint(equalTo: panel.contentView!.topAnchor),
-            hostingView.bottomAnchor.constraint(equalTo: panel.contentView!.bottomAnchor),
-        ])
+        super.init(window: panel)
+        panel.contentViewController = hostingController
     }
 
     required init?(coder: NSCoder) { fatalError() }
@@ -97,11 +94,12 @@ final class OverlayWindowController: NSWindowController {
         let service = FlourishProxyService()
         let model = ""  // controlled by Cloudflare Worker env vars
         let guidelines = Defaults.selectedProfile()?.systemPrompt ?? ""
+        let targetPlatform = Defaults[.targetPlatform]
 
         do {
             let response = try await service.improvePrompt(
                 text,
-                systemPrompt: BasePrompt.build(guidelines: guidelines),
+                systemPrompt: BasePrompt.build(guidelines: guidelines, targetPlatform: targetPlatform),
                 model: model
             )
 
@@ -150,10 +148,18 @@ final class OverlayWindowController: NSWindowController {
     private func centerOnScreen() {
         guard let screen = NSScreen.main else { return }
         let screenFrame = screen.visibleFrame
-        let panelSize = panel.frame.size
+        // Use sizeThatFits so the position is correct even before the first
+        // layout pass (e.g. when a draft is restored on open).
+        let fittingSize = hostingController.sizeThatFits(in: CGSize(width: FS.overlayWidth, height: .infinity))
+        let panelSize = CGSize(
+            width: FS.overlayWidth,
+            height: fittingSize.height > 0 ? fittingSize.height : panel.frame.size.height
+        )
         let x = screenFrame.midX - panelSize.width / 2
-        let y = screenFrame.midY + screenFrame.height * 0.1  // slightly above center like Spotlight
-        panel.setFrameOrigin(NSPoint(x: x, y: y))
+        // Center vertically, shifted slightly above mid — like Spotlight.
+        // y is the bottom edge of the panel in AppKit screen coordinates.
+        let y = screenFrame.midY - panelSize.height / 2 + screenFrame.height * 0.08
+        panel.setFrame(NSRect(origin: NSPoint(x: x, y: y), size: panelSize), display: false)
     }
 
     private func installEscapeMonitor() {

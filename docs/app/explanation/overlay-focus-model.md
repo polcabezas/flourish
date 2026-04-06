@@ -79,6 +79,32 @@ See [ADR-011: Paste Capture Timing](../adr/011-paste-capture-timing.md).
 
 ---
 
+## Dynamic panel sizing with NSHostingController
+
+The overlay panel resizes vertically as the user types. `OverlayView` uses a `TextEditor` with `frame(minHeight: FS.overlayInputMinHeight, maxHeight: 320)`: the editor (and therefore the panel) expands up to 320 pt as content grows, after which the editor scrolls internally.
+
+Getting this to work correctly in an AppKit panel requires using `NSHostingController` as the `contentViewController`, not an `NSHostingView` pinned to the content view with four Auto Layout constraints.
+
+### Why NSHostingView + constraints fails
+
+Pinning an `NSHostingView` to all four edges of `panel.contentView` with Auto Layout constraints locks the window to its initial size. Auto Layout resolves the SwiftUI view's dimensions to fill the fixed container rather than letting SwiftUI drive the container's size. The window never resizes in response to text changes.
+
+### How NSHostingController solves it
+
+Setting `NSHostingController` as `panel.contentViewController` and enabling `sizingOptions = .preferredContentSize` (macOS 13+) instructs AppKit to continuously propagate the SwiftUI hierarchy's preferred content size into `NSPanel.contentSize`. No manual resize code is needed; the panel grows and shrinks automatically as the SwiftUI layout changes.
+
+```swift
+let hostingController = NSHostingController(rootView: OverlayView(viewModel: overlayViewModel))
+hostingController.sizingOptions = .preferredContentSize
+panel.contentViewController = hostingController
+```
+
+First-open centering uses `hostingController.sizeThatFits(in:)` to obtain the correct initial height before positioning the panel, rather than relying on an arbitrary initial size.
+
+See [ADR-017: NSHostingController over NSHostingView for the overlay panel](../adr/017-nshosting-controller-for-overlay.md).
+
+---
+
 ## Window level: floating
 
 The panel's `level` is set to `.floating`. This ensures the overlay appears above the content of normal application windows (including full-screen apps on the same Space). Without this, the overlay could appear behind the very app the user is working in.
@@ -106,6 +132,7 @@ Flourish requests this permission proactively at launch via `AXIsProcessTrustedW
 ## Related
 
 - [ADR-001: Non-Activating Panel](../adr/001-non-activating-panel.md)
+- [ADR-017: NSHostingController over NSHostingView for the overlay panel](../adr/017-nshosting-controller-for-overlay.md)
 - [Paste Automation Explanation](paste-automation.md)
 - [Prompt Improvement Workflow](prompt-improvement-workflow.md)
 - [Platform Security: Accessibility](../../platform/security.md)

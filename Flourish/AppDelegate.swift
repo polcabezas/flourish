@@ -43,6 +43,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Apply launch at login preference
         LaunchAtLogin.isEnabled = Defaults[.launchAtLogin]
+
+        // Keep built-in profiles in sync with the latest code version.
+        // User-created profiles (isBuiltin == false) are preserved unchanged.
+        let userProfiles = Defaults[.profiles].filter { !$0.isBuiltin }
+        Defaults[.profiles] = GuidelineProfile.builtins + userProfiles
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

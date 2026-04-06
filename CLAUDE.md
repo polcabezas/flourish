@@ -60,16 +60,16 @@ Cloudflare Worker Proxy → External LLM APIs (OpenRouter, Groq)
 - `OverlayViewModel` — overlay state (`promptText`, draft, history navigation index)
 - `MainWindowState` — main window section selection
 
-**Models**: `GuidelineProfile`, `HistoryEntry` (GRDB record), `LLMProvider` enum, `ModelOption`
+**Models**: `GuidelineProfile`, `HistoryEntry` (GRDB record), `LLMProvider` enum, `ModelOption`, `TargetPlatform` enum
 
 ### Prompt Improvement Data Flow
 
 1. Ctrl+Space → `OverlayWindowController.toggle()`
 2. `PasteService.capturePreviousApp()` — **must happen before overlay shows**
 3. Overlay panel shown (`NSPanel` with `.nonactivatingPanel` — never steals focus)
-4. User types, selects profile, presses Return
+4. User types, selects profile, selects target platform, presses Return
 5. `LoaderWindowController.show()`
-6. `BasePrompt.build(guidelines)` → system prompt
+6. `BasePrompt.build(guidelines:targetPlatform:)` → system prompt (appends platform-specific formatting instruction when non-generic)
 7. `FlourishProxyService.improvePrompt()` → POST to Cloudflare Worker
 8. `PasteService.pasteText(improved)` → activate previous app + CGEvent Cmd+V
 9. `HistoryStore.insert(entry)` + stats update
@@ -84,7 +84,7 @@ func improvePrompt(_ text: String, systemPrompt: String, model: String) async th
 
 ### Design System
 
-Colors: background `#F7F6F4`, accent `#A9431E` (terracotta), button `#1A1A1A`
+Colors: background `#F8F7F4`, accent `#5B7B4E` (forest green), button `#5B7B4E` (same as accent)
 Spacing: 4pt base unit (xs=4, sm=8, md=12, lg=16, xl=20, xxl=24)
 Font: SF Pro Regular (weight 400)
 Constants live in `Flourish/DesignSystem/`

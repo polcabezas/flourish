@@ -21,7 +21,7 @@ Defined in `FlourishColors.swift` as `Color` extensions using hex values.
 | `surface` | `#F8F7F4` | Main panel and overlay backgrounds |
 | `sidebar` | `#EFEDE7` | Main window sidebar background |
 | `accent` | `#5B7B4E` | Interactive elements, active states, checkmarks |
-| `button` | `#17170D` | Primary button background (near-black) |
+| `button` | `#5B7B4E` | Primary button background (forest green — same as accent) |
 | `textPrimary` | `#17170D` | High-emphasis text |
 | `textSecondary` | `#6E6C65` | Low-emphasis text, labels, meta |
 | `divider` | computed | Subtle separators (typically `Color.black.opacity(0.08)`) |

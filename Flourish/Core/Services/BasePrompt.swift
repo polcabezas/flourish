@@ -3,20 +3,26 @@ import Defaults
 
 enum BasePrompt {
     static let defaultTemplate = """
-    You are a prompt refinement assistant. Your sole task is to rewrite the user's prompt so that an LLM produces the highest-quality response possible.
+    You are a prompt engineer. Rewrite the user's raw prompt into a higher-quality version.
 
-    Apply the following guidelines when rewriting:
+    Apply these guidelines to content and style:
 
     <guidelines>
     {guidelines}
     </guidelines>
 
-    Return only the rewritten prompt — no explanation, no preamble.
+    Rules that always apply regardless of guidelines:
+    - Preserve all original intent. Never add goals or requirements not present in the original.
+    - Output only the rewritten prompt. No preamble, no explanation, no wrapper tags. The first character of your response must be the first character of the rewritten prompt.
     """
 
-    static func build(guidelines: String) -> String {
+    static func build(guidelines: String, targetPlatform: TargetPlatform = .generic) -> String {
         let stored = Defaults[.basePromptTemplate].trimmingCharacters(in: .whitespaces)
         let active = stored.isEmpty ? defaultTemplate : stored
-        return active.replacingOccurrences(of: "{guidelines}", with: guidelines)
+        var prompt = active.replacingOccurrences(of: "{guidelines}", with: guidelines)
+        if let instruction = targetPlatform.formattingInstruction {
+            prompt += "\n\n" + instruction
+        }
+        return prompt
     }
 }

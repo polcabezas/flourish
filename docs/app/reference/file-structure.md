@@ -63,6 +63,7 @@ Every source file in the Flourish project with its responsibility and key export
 | `GuidelineProfile.swift` | `struct GuidelineProfile: Identifiable, Codable, Defaults.Serializable, Equatable`. Static property `builtInProfiles: [GuidelineProfile]` |
 | `HistoryEntry.swift` | `struct HistoryEntry`. GRDB `FetchableRecord` + `MutablePersistableRecord`. `databaseTableName = "history_entry"` |
 | `ModelOption.swift` | `struct ModelOption: Identifiable, Equatable`. Static arrays with built-in model metadata and pricing (used for cost calculation from history) |
+| `TargetPlatform.swift` | `enum TargetPlatform: String, CaseIterable, Codable, Defaults.Serializable, Identifiable`. Cases: `.generic`, `.claude`, `.chatgpt`, `.gemini`, `.perplexity`. `var formattingInstruction: String?` — returns platform-specific prompt-formatting instruction or `nil` for `.generic` |
 
 ---
 
@@ -72,8 +73,9 @@ Every source file in the Flourish project with its responsibility and key export
 |------|-------------|
 | `LLMService.swift` | `protocol LLMService`. `struct LLMResponse`. `enum LLMError: LocalizedError` |
 | `FlourishProxyService.swift` | `final class FlourishProxyService: LLMService`. Reads `FlourishProxyURL` and `FlourishProxyToken` from `Bundle.main.infoDictionary`. POSTs to `https://<FlourishProxyURL>/improve` |
-| `BasePrompt.swift` | `enum BasePrompt { static func build(profile:) -> String }`. Substitutes `{guidelines}` placeholder |
-| `HistoryStore.swift` | `final class HistoryStore`. Singleton. GRDB `DatabaseQueue`. Methods: `insert`, `fetchAll`, `fetchRecent`, `delete`, `deleteAll`, `totalCount`. Max 500 entries |
+| `BasePrompt.swift` | `enum BasePrompt { static func build(guidelines:targetPlatform:) -> String }`. Substitutes `{guidelines}` placeholder; appends `TargetPlatform.formattingInstruction` when non-`nil` |
+| `HistoryStore.swift` | `final class HistoryStore`. Singleton. GRDB `DatabaseQueue`. Methods: `insert`, `fetchAll`, `delete`, `deleteAll`, `totalCount`. Max 500 entries. Posts `Notification.Name.historyDidChange` after every insert, delete, and deleteAll |
+| `ProfileGeneratorService.swift` | `final class ProfileGeneratorService`. Uses `FlourishProxyService` with a hardcoded meta-prompt to generate a `GuidelineProfile` from a plain-language role description. Method: `generate(from: String) async throws -> GuidelineProfile` |
 | `PasteService.swift` | `final class PasteService`. Singleton. `capturePreviousApp()`, `paste(text:)`. Internally: `NSPasteboard`, `NSWorkspace`, `CGEvent` (Cmd+V simulation) |
 | `SessionStatsTracker.swift` | `final class SessionStatsTracker: ObservableObject`. `@Published` session request count, tokens, cost. `record(_ response: LLMResponse)` |
 
@@ -106,8 +108,9 @@ Every source file in the Flourish project with its responsibility and key export
 
 | File | Key Exports |
 |------|-------------|
-| `OverlayView.swift` | `struct OverlayView: View`. `@ObservedObject var viewModel: OverlayViewModel`. TextEditor with placeholder, auto-focus on appear, Up/Down arrow key handling, Return/Shift+Return handling. Toolbar row (profile picker + submit button). Hints row. Draft restored banner |
+| `OverlayView.swift` | `struct OverlayView: View`. `@ObservedObject var viewModel: OverlayViewModel`. TextEditor with placeholder, auto-focus on appear, Up/Down arrow key handling, Return/Shift+Return handling. Toolbar row (profile picker + target platform picker + submit button). Hints row. Draft restored banner |
 | `ProfilePickerView.swift` | `struct ProfilePickerView: View`. Reads all profiles (built-in + custom from Defaults). Writes selection to `Defaults[.lastSelectedProfileId]` |
+| `TargetPlatformPickerView.swift` | `struct TargetPlatformPickerView: View`. Native macOS `.menu` style `Picker` bound to `Defaults[.targetPlatform]`. Lists all `TargetPlatform.allCases` by `displayName` |
 
 ---
 
@@ -125,10 +128,10 @@ Every source file in the Flourish project with its responsibility and key export
 
 | File | Key Exports |
 |------|-------------|
-| `MainWindowController.swift` | `final class MainWindowController: NSWindowController`. Singleton. Frame autosave name: `"MainWindow"`. `showWindow(_:)` activates the app |
+| `MainWindowController.swift` | `final class MainWindowController: NSWindowController`. Lazily instantiated by `MenuBarManager` on first open (not a static singleton). `showAndFocus()` centers the window via `center()` then calls `makeKeyAndOrderFront(_:)` |
 | `MainWindowView.swift` | `struct MainWindowView: View`. `NavigationSplitView` with sidebar items: Home, Profiles, Settings. Reads `@State var selection` |
 | `HomeView.swift` | `struct HomeView: View`. Header with all-time stats badges. Hero card ("Open Overlay →" button). History timeline grouped by TODAY/YESTERDAY/EARLIER using `TwoColumnLayout`. Row-level delete and copy actions |
-| `ProfilesView.swift` | `struct ProfilesView: View`. List of all profiles. Edit button → `ProfileEditSheet` sheet. Delete action for custom profiles. "New Profile" toolbar button |
+| `ProfilesView.swift` | `struct ProfilesView: View`. List of all profiles. "Generate with AI" button → `GenerateProfileSheet` sheet. "New Profile" button → `ProfileEditSheet`. Edit (pencil) and delete (trash) actions per row |
 | `SettingsPanelView.swift` | `struct SettingsPanelView: View`. Single scrollable view with sections: Keyboard Shortcut (`KeyboardShortcuts.Recorder`), Base Prompt (`TextEditor` + reset), General (Launch at Login, Show Dock Icon, About) |
 
 ---
@@ -139,6 +142,7 @@ Every source file in the Flourish project with its responsibility and key export
 |------|-------------|
 | `SettingsView.swift` | Compatibility wrapper for the `Settings` scene in `FlourishApp.swift` |
 | `Tabs/ProfileEditSheet.swift` | `struct ProfileEditSheet: View`. Modal sheet with Name `TextField` and System Prompt `TextEditor`. Save/Cancel buttons |
+| `Tabs/GenerateProfileSheet.swift` | `struct GenerateProfileSheet: View`. Two-stage modal: **DescribeStage** (user enters role/work description) → **ReviewStage** (edit generated name and system prompt before saving). Calls `ProfileGeneratorService.generate(from:)` |
 
 ---
 
@@ -147,7 +151,7 @@ Every source file in the Flourish project with its responsibility and key export
 | File | Key Exports |
 |------|-------------|
 | `HistoryView.swift` | `struct HistoryView: View`. `HSplitView` container: left = `HistoryListView`, right = `HistoryDetailView` |
-| `HistoryListView.swift` | `struct HistoryListView: View`. Search bar (filters via `HistoryStore.fetchAll(search:)`). Scrollable list of entries showing timestamp + truncated prompts. Selection drives `HistoryDetailView` |
+| `HistoryListView.swift` | `struct HistoryListView: View`. Search bar (filters via `HistoryStore.fetchAll(search:)`). Scrollable list of entries showing timestamp + truncated prompts. Selection drives `HistoryDetailView`. Subscribes to `Notification.Name.historyDidChange` via `.onReceive` to reload the list immediately after any insert or delete |
 | `HistoryDetailView.swift` | `struct HistoryDetailView: View`. Full original and improved prompt text (selectable). Metadata row: provider, model, tokens in/out, cost, timestamp. Copy buttons |
 
 ---

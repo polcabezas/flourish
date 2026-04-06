@@ -59,8 +59,8 @@ extension Color {
     /// Accent: muted forest green — loader dots, active items, logo
     static let flourishAccent = Color(hex: "#5B7B4E")
 
-    /// Primary button background: near-black
-    static let flourishButtonBg = Color(hex: "#17170D")
+    /// Primary button background: forest green
+    static let flourishButtonBg = Color(hex: "#5B7B4E")
 
     /// Primary button label: white
     static let flourishButtonLabel = Color(hex: "#FFFFFF")

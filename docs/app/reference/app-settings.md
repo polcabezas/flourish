@@ -14,6 +14,7 @@ Defined in `Flourish/Core/AppSettings.swift`. Accessed via the `Defaults` packag
 |-----|------|---------|-------------|
 | `profiles` | `[GuidelineProfile]` | `[]` | All user-created custom profiles (JSON-encoded) |
 | `lastSelectedProfileId` | `String` | `""` | UUID string of the last selected profile. Empty string means "use first available" |
+| `targetPlatform` | `TargetPlatform` | `.generic` | Last selected target platform (Claude, ChatGPT, Gemini, Perplexity, or Universal). Appends platform-specific formatting instructions to the base prompt. Persisted across sessions |
 
 ---
 
@@ -32,7 +33,7 @@ Defined in `Flourish/Core/AppSettings.swift`. Accessed via the `Defaults` packag
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `basePromptTemplate` | `String` | `""` | Custom system prompt template. Must contain `{guidelines}` for profile injection. Empty string means use the built-in default template from `BasePrompt.swift` |
+| `basePromptTemplate` | `String` | `""` | Custom system prompt template. Must contain `{guidelines}` for profile injection. Empty string means use the built-in default template from `BasePrompt.swift`. **Not exposed in the Settings UI** (removed in ADR-021). |
 
 ---
 
@@ -82,3 +83,4 @@ Defaults[.totalRequestCount] += 1
 - [Data Models Reference](data-models.md) — `GuidelineProfile` definition
 - [ADR-004: Defaults Package](../adr/004-defaults-package.md)
 - [ADR-015: Cloudflare Worker Proxy](../adr/015-cloudflare-worker-proxy.md) — explains removal of provider keys
+- [ADR-021: Remove base prompt editor](../adr/021-remove-base-prompt-editor.md) — explains why `basePromptTemplate` is no longer UI-exposed

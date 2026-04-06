@@ -8,6 +8,7 @@ import Defaults
 struct OverlayView: View {
     @ObservedObject var viewModel: OverlayViewModel
     @Default(.lastSelectedProfileId) private var selectedProfileId
+    @Default(.targetPlatform) private var targetPlatform
     @FocusState private var inputFocused: Bool
 
     var body: some View {
@@ -19,7 +20,7 @@ struct OverlayView: View {
                         .font(.flourishInput)
                         .foregroundColor(.flourishTextSecondary)
                         .padding(.horizontal, FS.overlayInputPaddingH)
-                        .padding(.top, FS.overlayInputPaddingV + FS.xl)
+                        .padding(.top, FS.overlayInputPaddingV)
                         .allowsHitTesting(false)
                 }
 
@@ -27,11 +28,11 @@ struct OverlayView: View {
                     .font(.flourishInput)
                     .foregroundColor(.flourishTextPrimary)
                     .scrollContentBackground(.hidden)
+                    .scrollIndicators(.hidden)
                     .background(Color.flourishSurface)
-                    .frame(minHeight: FS.overlayInputMinHeight, maxHeight: 200)
+                    .frame(minHeight: FS.overlayInputMinHeight, maxHeight: 320)
                     .padding(.horizontal, FS.overlayInputPaddingH - 5)
-                    .padding(.top, FS.overlayInputPaddingV + FS.xl)
-                    .padding(.bottom, FS.overlayInputPaddingV - 2)
+                    .padding(.top, FS.overlayInputPaddingV)
                     .focused($inputFocused)
             }
             .frame(minHeight: FS.overlayInputMinHeight)
@@ -46,6 +47,7 @@ struct OverlayView: View {
             VStack(spacing: 0) {
                 HStack(spacing: FS.sm) {
                     ProfilePickerView(selectedProfileId: $selectedProfileId)
+                    TargetPlatformPickerView(selectedPlatform: $targetPlatform)
                     Spacer()
                     ImproveButton {
                         Task { @MainActor in OverlayWindowController.shared.dismiss(paste: true) }

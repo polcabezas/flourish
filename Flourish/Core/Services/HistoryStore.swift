@@ -1,6 +1,10 @@
 import Foundation
 import GRDB
 
+extension Notification.Name {
+    static let historyDidChange = Notification.Name("flourish.historyDidChange")
+}
+
 // MARK: - History Store (GRDB SQLite)
 
 final class HistoryStore {
@@ -68,6 +72,7 @@ final class HistoryStore {
                 )
             }
         }
+        NotificationCenter.default.post(name: .historyDidChange, object: nil)
     }
 
     // MARK: - Fetch
@@ -97,12 +102,14 @@ final class HistoryStore {
         try db.write { db in
             try db.execute(sql: "DELETE FROM history_entry WHERE id = ?", arguments: [id])
         }
+        NotificationCenter.default.post(name: .historyDidChange, object: nil)
     }
 
     func deleteAll() throws {
         try db.write { db in
             try db.execute(sql: "DELETE FROM history_entry")
         }
+        NotificationCenter.default.post(name: .historyDidChange, object: nil)
     }
 
     func totalCount() throws -> Int {

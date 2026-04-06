@@ -25,6 +25,12 @@ ADRs are **never modified after acceptance**. If a decision is reversed or super
 | [013](013-base-prompt-placeholder.md) | `{guidelines}` placeholder in base prompt template | Accepted |
 | [014](014-draft-save-on-dismiss.md) | Save draft on dismiss, not on every keystroke | Accepted |
 | [015](015-cloudflare-worker-proxy.md) | Cloudflare Worker proxy for LLM API access | Accepted |
+| [016](016-target-platform-formatting.md) | Per-platform formatting instructions appended to the base prompt | Accepted |
+| [017](017-nshosting-controller-for-overlay.md) | NSHostingController over NSHostingView for the overlay panel | Accepted |
+| [018](018-outcome-oriented-profiles.md) | Outcome-oriented built-in profiles for non-technical users | Accepted |
+| [019](019-ai-generated-profiles.md) | AI-generated guideline profiles via `ProfileGeneratorService` | Accepted |
+| [020](020-slim-base-prompt-invariants-only.md) | Slim base prompt — universal invariants only | Accepted |
+| [021](021-remove-base-prompt-editor.md) | Remove base prompt editor from Settings UI | Accepted |
 
 ---
 

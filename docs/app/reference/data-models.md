@@ -11,11 +11,11 @@ All Swift model types in `Flourish/Core/Models/`.
 A named set of system prompt instructions for a specific writing style or intent.
 
 ```swift
-struct GuidelineProfile: Identifiable, Codable, Defaults.Serializable, Equatable {
-    let id: UUID
+struct GuidelineProfile: Identifiable, Codable, Hashable, Defaults.Serializable {
+    var id: UUID
     var name: String
     var systemPrompt: String
-    var isBuiltIn: Bool
+    var isBuiltin: Bool
 }
 ```
 
@@ -24,18 +24,37 @@ struct GuidelineProfile: Identifiable, Codable, Defaults.Serializable, Equatable
 | `id` | `UUID` | Stable identifier; used as `lastSelectedProfileId` key |
 | `name` | `String` | Display name shown in overlay profile picker |
 | `systemPrompt` | `String` | Full instructions injected at `{guidelines}` in the base prompt |
-| `isBuiltIn` | `Bool` | `true` for the 6 built-in profiles; prevents editing/deletion |
+| `isBuiltin` | `Bool` | `true` for the 6 built-in profiles; renders them read-only in the UI (Edit and Delete actions hidden) |
 
 ### Built-in profiles (static instances)
 
-| Name | Intent |
-|------|--------|
-| Clearer | Remove ambiguity; improve readability |
-| More Concise | Trim to essential information |
-| More Detailed | Expand with specifics and context |
-| Professional | Formal, polished language |
-| Developer | Precise, technical phrasing |
-| Creative | Imaginative and engaging tone |
+Designed for non-technical office workers. Each profile's `systemPrompt` is outcome-oriented — it tells the improving LLM what kind of professional output to produce, not how to structure the prompt itself.
+
+| Name | Intended output |
+|------|----------------|
+| Professional Email | Complete, send-ready email with appropriate tone, recipient context, and clear objective |
+| Summarize | TL;DR + 3–5 key bullet points + any decisions highlighted, ≤20% of source length |
+| Explain Simply | Jargon-free explanation with analogy, general-to-specific structure, length appropriate to topic complexity |
+| Draft a Document | Structured professional document with structure appropriate to document type, audience, and tone |
+| Analyze & Advise | Direct recommendation + supporting reasoning + risks + concrete next steps |
+| Brainstorm | 5–8 distinct ideas with one-sentence rationale and fastest-to-implement vs. highest-impact note |
+
+Each built-in profile closes with an explicit preservation statement of the form: "Include only context present in the original — do not invent [role-specific details] if not stated." This makes the non-invention contract specific to each profile's domain rather than relying on a generic base-prompt rule.
+
+### Read-only in the UI
+
+When `isBuiltin == true`, both `ProfilesView` (main window sidebar) and `ProfilesTab` (Settings) hide the Edit and Delete actions for that profile. A "Built-in" badge is shown instead of an edit affordance. The profile can be selected and used normally; it cannot be modified or removed by the user.
+
+User-created profiles (`isBuiltin == false`) have full CRUD available.
+
+### Seeding
+
+Built-in profiles are re-seeded from `GuidelineProfile.builtins` on every app launch in `AppDelegate.applicationDidFinishLaunching`. This ensures code changes to built-in profiles take effect without requiring a UserDefaults reset. User-created profiles (`isBuiltin == false`) are preserved.
+
+```swift
+let userProfiles = Defaults[.profiles].filter { !$0.isBuiltin }
+Defaults[.profiles] = GuidelineProfile.builtins + userProfiles
+```
 
 ### Serialization
 
@@ -131,6 +150,40 @@ struct ModelOption: Identifiable, Equatable {
 | `llama3-70b-8192` | Llama 3 70B |
 | `mixtral-8x7b-32768` | Mixtral 8x7B |
 | `gemma2-9b-it` | Gemma 2 9B |
+
+---
+
+## TargetPlatform
+
+**File:** `Core/Models/TargetPlatform.swift`
+
+An enum identifying the AI assistant the user intends to paste the improved prompt into. Each case carries a platform-specific formatting instruction string that `BasePrompt.build` appends to the system prompt.
+
+```swift
+enum TargetPlatform: String, CaseIterable, Codable, Defaults.Serializable, Identifiable {
+    case generic    = "generic"
+    case claude     = "claude"
+    case chatgpt    = "chatgpt"
+    case gemini     = "gemini"
+    case perplexity = "perplexity"
+}
+```
+
+| Case | Display Name | Formatting instruction summary |
+|------|-------------|-------------------------------|
+| `.generic` | Universal | `nil` — no appendix added to the prompt |
+| `.claude` | Claude | Descriptive XML tags (`<task>`, `<context>`, `<constraints>`, `<output_format>`); reference material at top; rationale stated alongside each constraint |
+| `.chatgpt` | ChatGPT | Markdown (`###` headers, `---` separators, bullet/numbered lists); key constraint repeated at the end to counteract recency bias |
+| `.gemini` | Gemini | `<context>` XML wrapper at start; structurally identical few-shot examples; task then query pattern |
+| `.perplexity` | Perplexity | Keyword-rich search query style; brief system message section only; temporal framing when recency matters |
+
+### Behaviour
+
+`TargetPlatform.formattingInstruction` returns an `Optional<String>` — `nil` for `.generic`, a multi-line instruction string for all other cases. `BasePrompt.build(guidelines:targetPlatform:)` appends the instruction verbatim after a blank line when non-`nil`.
+
+### Persistence
+
+Stored in `UserDefaults` via the Defaults package under the `"targetPlatform"` key. Automatically persists the user's last selection across sessions.
 
 ---
 

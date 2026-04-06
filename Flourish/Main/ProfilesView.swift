@@ -8,6 +8,7 @@ struct ProfilesView: View {
     @Default(.profiles) private var profiles
     @State private var editingProfile: GuidelineProfile? = nil
     @State private var showAddSheet = false
+    @State private var showGenerateSheet = false
     @State private var deleteConfirmTarget: GuidelineProfile? = nil
 
     var body: some View {
@@ -19,7 +20,24 @@ struct ProfilesView: View {
                     .foregroundColor(.flourishTextPrimary)
                 Spacer()
                 Button {
-                    editingProfile = nil
+                    showGenerateSheet = true
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 11, weight: .medium))
+                        Text("Generate with AI")
+                            .font(.flourishButton)
+                    }
+                    .foregroundColor(.flourishButtonLabel)
+                    .padding(.horizontal, FS.md)
+                    .padding(.vertical, FS.xs + 1)
+                    .background(Color.flourishButtonBg)
+                    .cornerRadius(FS.radiusSm)
+                }
+                .buttonStyle(.plain)
+                .pointerCursor()
+
+                Button {
                     showAddSheet = true
                 } label: {
                     HStack(spacing: 5) {
@@ -28,10 +46,10 @@ struct ProfilesView: View {
                         Text("New Profile")
                             .font(.flourishButton)
                     }
-                    .foregroundColor(.flourishButtonLabel)
+                    .foregroundColor(.flourishTextSecondary)
                     .padding(.horizontal, FS.md)
                     .padding(.vertical, FS.xs + 1)
-                    .background(Color.flourishButtonBg)
+                    .background(Color.flourishSurfaceRaised)
                     .cornerRadius(FS.radiusSm)
                 }
                 .buttonStyle(.plain)
@@ -69,7 +87,6 @@ struct ProfilesView: View {
                                 profile: profile,
                                 onEdit: {
                                     editingProfile = profile
-                                    showAddSheet = true
                                 },
                                 onDelete: {
                                     deleteConfirmTarget = profile
@@ -88,12 +105,19 @@ struct ProfilesView: View {
         }
         .background(Color.flourishSurface)
         .sheet(isPresented: $showAddSheet) {
-            ProfileEditSheet(existingProfile: editingProfile) { saved in
-                if let existing = editingProfile,
-                   let idx = profiles.firstIndex(where: { $0.id == existing.id }) {
+            ProfileEditSheet(existingProfile: nil) { saved in
+                profiles.append(saved)
+            }
+        }
+        .sheet(isPresented: $showGenerateSheet) {
+            GenerateProfileSheet { saved in
+                profiles.append(saved)
+            }
+        }
+        .sheet(item: $editingProfile) { profile in
+            ProfileEditSheet(existingProfile: profile) { saved in
+                if let idx = profiles.firstIndex(where: { $0.id == profile.id }) {
                     profiles[idx] = saved
-                } else {
-                    profiles.append(saved)
                 }
             }
         }
@@ -125,43 +149,59 @@ private struct ProfileListRow: View {
     var body: some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 3) {
-                Text(profile.name)
-                    .font(.flourishBody)
-                    .foregroundColor(.flourishTextPrimary)
+                HStack(spacing: FS.xs) {
+                    Text(profile.name)
+                        .font(.flourishBody)
+                        .foregroundColor(.flourishTextPrimary)
+                    if profile.isBuiltin {
+                        Text("Built-in")
+                            .font(.flourishMeta)
+                            .foregroundColor(.flourishTextSecondary)
+                            .padding(.horizontal, FS.xs)
+                            .padding(.vertical, 2)
+                            .background(Color.flourishSurfaceRaised)
+                            .cornerRadius(FS.radiusSm)
+                    }
+                }
                 Text(String(profile.systemPrompt.prefix(90)) + (profile.systemPrompt.count > 90 ? "…" : ""))
                     .font(.flourishMeta)
                     .foregroundColor(.flourishTextTertiary)
                     .lineLimit(2)
             }
             Spacer()
-            HStack(spacing: FS.xs) {
-                Button(action: onEdit) {
-                    Image(systemName: "pencil")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(isHovered ? .flourishTextSecondary : .flourishTextTertiary.opacity(0.5))
-                        .frame(width: 28, height: 28)
-                        .contentShape(Rectangle())
+            if !profile.isBuiltin {
+                HStack(spacing: FS.xs) {
+                    Button(action: onEdit) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(isHovered ? .flourishTextSecondary : .flourishTextTertiary.opacity(0.5))
+                            .frame(width: 28, height: 28)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .pointerCursor()
+                    Button(action: onDelete) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(isHovered ? .red.opacity(0.75) : .flourishTextTertiary.opacity(0.5))
+                            .frame(width: 28, height: 28)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .pointerCursor()
                 }
-                .buttonStyle(.plain)
-                .pointerCursor()
-                Button(action: onDelete) {
-                    Image(systemName: "trash")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(isHovered ? .red.opacity(0.75) : .flourishTextTertiary.opacity(0.5))
-                        .frame(width: 28, height: 28)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .pointerCursor()
             }
         }
         .padding(.horizontal, FS.xxl)
         .padding(.vertical, FS.md)
-        .background(isHovered ? Color.flourishSurfaceRaised : Color.clear)
+        .background(isHovered && !profile.isBuiltin ? Color.flourishSurfaceRaised : Color.clear)
         .contentShape(Rectangle())
-        .onTapGesture { onEdit() }
+        .onTapGesture { if !profile.isBuiltin { onEdit() } }
         .animation(.easeOut(duration: 0.12), value: isHovered)
-        .onHover { isHovered = $0 }
-        .pointerCursor()
+        .onHover { inside in
+            isHovered = inside && !profile.isBuiltin
+            guard !profile.isBuiltin else { return }
+            if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() }
+        }
     }
 }

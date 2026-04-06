@@ -24,4 +24,5 @@ Flourish is a macOS menu bar application that improves prompts using Large Langu
 
 ## Changelog
 
+- [v1.1.0](changelog/v1.1.0.md) — Target platform picker; forest-green primary buttons
 - [v1.0.0](changelog/v1.0.0.md) — Initial release: overlay workflow, dual-provider support, history, profiles, statistics

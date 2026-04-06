@@ -73,6 +73,9 @@ struct HistoryListView: View {
         }
         .background(Color.flourishSurface)
         .onAppear { loadEntries() }
+        .onReceive(NotificationCenter.default.publisher(for: .historyDidChange)) { _ in
+            loadEntries()
+        }
     }
 
     private func loadEntries() {

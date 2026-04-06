@@ -9,7 +9,7 @@ The complete sequence of events from the moment a user presses the global hotkey
 ```
 Hotkey pressed
     → Overlay shown (non-activating, focus stays in previous app)
-    → User types and selects a profile
+    → User types, selects a profile, and optionally selects a target platform
     → Return pressed
     → Loader shown
     → POST to Cloudflare Worker proxy (async)
@@ -73,7 +73,9 @@ The overlay is now visible and key. The `TextEditor` in `OverlayView` auto-focus
 | Up arrow | Saves draft to in-memory buffer, loads previous history entry |
 | Down arrow | Loads next history entry or restores in-memory draft |
 
-The toolbar shows a profile picker and a submit button. There is no provider or model picker — those are controlled server-side via the Cloudflare Worker.
+The toolbar shows a profile picker, a target platform picker, and a submit button. There is no provider or model picker — those are controlled server-side via the Cloudflare Worker.
+
+The **target platform picker** (`TargetPlatformPickerView`) lets the user declare which AI assistant they intend to paste the improved prompt into. Selecting a platform other than "Universal" causes `BasePrompt.build` to append a platform-specific formatting instruction to the system prompt before the LLM call.
 
 ---
 
@@ -100,15 +102,30 @@ func dismiss(paste: Bool) {
 
 The panel is hidden before `runLLM()` starts. The loader appears instead.
 
-### 3.2 Profile and system prompt assembly
+### 3.2 Profile, target platform, and system prompt assembly
 
 ```swift
-let profileId = Defaults[.lastSelectedProfileId]
-let profile = allProfiles.first { $0.id.uuidString == profileId }
-let systemPrompt = BasePrompt.build(profile: profile)
+let guidelines      = Defaults.selectedProfile()?.systemPrompt ?? ""
+let targetPlatform  = Defaults[.targetPlatform]
+let systemPrompt    = BasePrompt.build(guidelines: guidelines, targetPlatform: targetPlatform)
 ```
 
-`BasePrompt.build(profile:)` returns the full system prompt with `{guidelines}` replaced by the profile's `systemPrompt` text.
+`BasePrompt.build(guidelines:targetPlatform:)` composes the final system prompt from three layers:
+
+**Layer 1 — Base prompt (universal invariants)**  
+The base prompt template contains exactly two rules that apply unconditionally, regardless of the selected profile:
+- *Preservation rule*: "Preserve all original intent. Never add goals or requirements not present in the original."
+- *Output format rule*: "Output only the rewritten prompt. No preamble, no explanation, no wrapper tags. The first character of your response must be the first character of the rewritten prompt."
+
+The base prompt contains no content or style rules. Those belong entirely to the profile.
+
+**Layer 2 — Profile guidelines (content + style)**  
+`{guidelines}` is substituted with the selected `GuidelineProfile.systemPrompt`. The profile fully owns tone, structure, content focus, and audience handling. Each built-in profile closes with an explicit preservation statement (e.g., "Include only context present in the original — do not invent the recipient, relationship, or objective if not stated.") that makes its own non-invention contract specific to its use case.
+
+**Layer 3 — Platform formatting (structural syntax)**  
+If `targetPlatform != .generic`, the platform's formatting instruction is appended after a blank line. For example, selecting Claude appends XML-tag structuring rules; selecting Perplexity appends search-query optimisation rules. The default `.generic` adds nothing.
+
+Each layer has a distinct, non-overlapping responsibility, preventing the improving LLM from receiving contradictory instructions about content vs. structure.
 
 ---
 

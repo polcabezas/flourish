@@ -21,18 +21,18 @@ final class MainWindowController: NSWindowController {
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.minSize = NSSize(width: FS.mainWindowWidth, height: FS.mainWindowHeight)
-        window.center()
-        window.setFrameAutosaveName("FlourishMainWindow")
+        window.setFrameAutosaveName("")
         window.appearance = NSAppearance(named: .aqua)
 
         let contentView = MainWindowView()
         window.contentView = NSHostingView(rootView: contentView)
 
         self.init(window: window)
+        shouldCascadeWindows = false
     }
 
     func showAndFocus() {
-        showWindow(nil)
+        window?.center()
         window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }

@@ -211,6 +211,119 @@ edges:
     to: security
     rel: see-also
 
+  # Target platform cross-links
+  - from: adr-016
+    to: adr-013
+    rel: rationale
+
+  - from: adr-016
+    to: ref-data-models
+    rel: reference
+
+  - from: adr-016
+    to: exp-workflow
+    rel: explanation
+
+  - from: exp-workflow
+    to: adr-016
+    rel: rationale
+
+  - from: ref-app-settings
+    to: adr-016
+    rel: rationale
+
+  - from: ref-data-models
+    to: adr-016
+    rel: rationale
+
+  # NSHostingController overlay sizing cross-links
+  - from: adr-017
+    to: adr-001
+    rel: see-also
+
+  - from: adr-017
+    to: exp-overlay-focus
+    rel: explanation
+
+  - from: adr-017
+    to: ref-architecture
+    rel: reference
+
+  - from: exp-overlay-focus
+    to: adr-017
+    rel: rationale
+
+  # Profile redesign and AI generation cross-links
+  - from: adr-018
+    to: ref-data-models
+    rel: reference
+
+  - from: adr-019
+    to: adr-015
+    rel: rationale
+
+  - from: adr-019
+    to: adr-006
+    rel: rationale
+
+  - from: adr-019
+    to: adr-018
+    rel: see-also
+
+  - from: adr-019
+    to: ref-data-models
+    rel: reference
+
+  - from: howto-manage-profiles
+    to: adr-018
+    rel: rationale
+
+  - from: howto-manage-profiles
+    to: adr-019
+    rel: rationale
+
+  # Slim base prompt cross-links
+  - from: adr-020
+    to: adr-013
+    rel: see-also
+
+  - from: adr-020
+    to: adr-018
+    rel: see-also
+
+  - from: adr-020
+    to: adr-019
+    rel: see-also
+
+  - from: adr-020
+    to: exp-workflow
+    rel: explanation
+
+  # Remove base prompt editor cross-links
+  - from: adr-021
+    to: adr-020
+    rel: rationale
+
+  - from: adr-021
+    to: adr-018
+    rel: see-also
+
+  - from: adr-021
+    to: adr-019
+    rel: see-also
+
+  - from: adr-021
+    to: adr-013
+    rel: see-also
+
+  - from: adr-021
+    to: ref-app-settings
+    rel: reference
+
+  - from: ref-app-settings
+    to: adr-021
+    rel: rationale
+
   # Security cross-links
   - from: security
     to: adr-005

@@ -86,8 +86,9 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
 
 | View | File | Responsibility |
 |------|------|----------------|
-| `OverlayView` | `Overlay/Views/OverlayView.swift` | Input `TextEditor`, toolbar row (profile picker, submit button), hints row |
+| `OverlayView` | `Overlay/Views/OverlayView.swift` | Input `TextEditor`, toolbar row (profile picker, target platform picker, submit button), hints row |
 | `ProfilePickerView` | `Overlay/Views/ProfilePickerView.swift` | Profile dropdown in the overlay toolbar |
+| `TargetPlatformPickerView` | `Overlay/Views/TargetPlatformPickerView.swift` | Native `.menu` style `Picker` bound to `Defaults[.targetPlatform]`; lists all `TargetPlatform` cases |
 | `LoaderView` | `Loader/LoaderView.swift` | 3-dot pulsing animation view |
 | `MainWindowView` | `Main/MainWindowView.swift` | Sidebar (`NavigationSplitView`) + content router |
 | `HomeView` | `Main/HomeView.swift` | Welcome header, stats badges, hero card, history timeline |
@@ -122,6 +123,8 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
 |-------|------|----------------|
 | `GuidelineProfile` | `Core/Models/GuidelineProfile.swift` | Named system prompt template; `Defaults.Serializable` |
 | `HistoryEntry` | `Core/Models/HistoryEntry.swift` | SQLite row; GRDB `FetchableRecord` + `MutablePersistableRecord` |
+| `TargetPlatform` | `Core/Models/TargetPlatform.swift` | Enum of AI assistant targets; each case carries an optional `formattingInstruction` string appended by `BasePrompt.build` |
+| `ModelOption` | `Core/Models/ModelOption.swift` | Metadata (id, name, per-token pricing) for known models; used for client-side cost estimation only |
 
 ### Design System
 
@@ -172,14 +175,14 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
         ↓
 5.  OverlayPanel shown, makeKey()
         ↓
-6.  User types prompt and selects profile
+6.  User types prompt, selects a profile, and optionally selects a target platform
         ↓
 7.  User presses Return → OverlayWindowController.dismiss(paste: true)
         ↓
 8.  LoaderWindowController.shared.show()
         ↓
 9.  OverlayWindowController.runLLM()  [async Task]
-        ├── BasePrompt.build(profile:) → systemPrompt
+        ├── BasePrompt.build(guidelines:targetPlatform:) → systemPrompt
         ├── FlourishProxyService()
         │       .improvePrompt(text, systemPrompt, model: "")
         │       → POST https://<FLOURISH_PROXY_URL>/improve
@@ -234,7 +237,7 @@ OverlayWindowController
   └── FlourishProxyService (instantiated per call)
 
 MenuBarManager
-  └── MainWindowController.shared (open)
+  └── MainWindowController (lazy instance, created on first open)
 
 MainWindowController
   └── MainWindowView → HomeView / ProfilesView / SettingsPanelView

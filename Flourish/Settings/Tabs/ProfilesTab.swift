@@ -7,6 +7,7 @@ struct ProfilesTab: View {
     @Default(.profiles) private var profiles
     @State private var editingProfile: GuidelineProfile? = nil
     @State private var showAddSheet = false
+    @State private var showGenerateSheet = false
     @State private var deleteConfirmTarget: GuidelineProfile? = nil
 
     var body: some View {
@@ -16,7 +17,14 @@ struct ProfilesTab: View {
                 SectionLabel("Guideline Profiles")
                 Spacer()
                 Button {
-                    editingProfile = nil
+                    showGenerateSheet = true
+                } label: {
+                    Label("Generate with AI", systemImage: "sparkles")
+                        .font(.flourishBody)
+                }
+                .buttonStyle(.bordered)
+                .pointerCursor()
+                Button {
                     showAddSheet = true
                 } label: {
                     Label("Add Profile", systemImage: "plus")
@@ -38,7 +46,6 @@ struct ProfilesTab: View {
                         profile: profile,
                         onEdit: {
                             editingProfile = profile
-                            showAddSheet = true
                         },
                         onDelete: {
                             deleteConfirmTarget = profile
@@ -49,12 +56,19 @@ struct ProfilesTab: View {
             .listStyle(.inset)
         }
         .sheet(isPresented: $showAddSheet) {
-            ProfileEditSheet(existingProfile: editingProfile) { saved in
-                if let existing = editingProfile,
-                   let idx = profiles.firstIndex(where: { $0.id == existing.id }) {
+            ProfileEditSheet(existingProfile: nil) { saved in
+                profiles.append(saved)
+            }
+        }
+        .sheet(isPresented: $showGenerateSheet) {
+            GenerateProfileSheet { saved in
+                profiles.append(saved)
+            }
+        }
+        .sheet(item: $editingProfile) { profile in
+            ProfileEditSheet(existingProfile: profile) { saved in
+                if let idx = profiles.firstIndex(where: { $0.id == profile.id }) {
                     profiles[idx] = saved
-                } else {
-                    profiles.append(saved)
                 }
             }
         }
@@ -105,12 +119,12 @@ private struct ProfileRow: View {
                     .lineLimit(2)
             }
             Spacer()
-            HStack(spacing: FS.sm) {
-                Button("Edit") { onEdit() }
-                    .font(.flourishMeta)
-                    .buttonStyle(.bordered)
-                    .pointerCursor()
-                if !profile.isBuiltin {
+            if !profile.isBuiltin {
+                HStack(spacing: FS.sm) {
+                    Button("Edit") { onEdit() }
+                        .font(.flourishMeta)
+                        .buttonStyle(.bordered)
+                        .pointerCursor()
                     Button("Delete") { onDelete() }
                         .font(.flourishMeta)
                         .buttonStyle(.bordered)

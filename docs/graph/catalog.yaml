@@ -371,23 +371,23 @@ docs:
     component: app
 
   # Changelog
-  - id: changelog-v1
-    path: docs/changelog/v1.0.0.md
+  - id: changelog-v0-1
+    path: docs/changelog/v0.1.0.md
     type: changelog
     component: platform
 
-  - id: changelog-v1-1
-    path: docs/changelog/v1.1.0.md
+  - id: changelog-v0-2
+    path: docs/changelog/v0.2.0.md
     type: changelog
     component: platform
 
-  - id: changelog-v1-2
-    path: docs/changelog/v1.2.0.md
+  - id: changelog-v0-3
+    path: docs/changelog/v0.3.0.md
     type: changelog
     component: platform
 
-  - id: changelog-v1-2-1
-    path: docs/changelog/v1.2.1.md
+  - id: changelog-v0-3-1
+    path: docs/changelog/v0.3.1.md
     type: changelog
     component: platform
 

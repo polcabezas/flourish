@@ -543,13 +543,119 @@ edges:
     to: adr-031
     rel: rationale
 
+  # ADR-032: Git sync before DMG build
+  - from: adr-032
+    to: adr-008
+    rel: see-also
+
+  - from: adr-032
+    to: adr-022
+    rel: see-also
+
+  - from: howto-build-distribute
+    to: adr-032
+    rel: rationale
+
+  # ADR-033: Limit reached popup
+  - from: adr-033
+    to: adr-024
+    rel: see-also
+
+  - from: adr-033
+    to: adr-034
+    rel: see-also
+
+  - from: adr-033
+    to: adr-007
+    rel: rationale
+
+  # ADR-034: Unlimited Pro plan
+  - from: adr-034
+    to: adr-027
+    rel: rationale
+
+  - from: adr-034
+    to: adr-030
+    rel: see-also
+
+  - from: adr-034
+    to: adr-033
+    rel: see-also
+
+  - from: howto-manage-account
+    to: adr-034
+    rel: rationale
+
+  # ADR-037: Loader success state
+  - from: adr-037
+    to: adr-017
+    rel: see-also
+
+  - from: adr-037
+    to: exp-overlay-focus
+    rel: explanation
+
+  # ADR-038: build-dmg.sh version source of truth
+  - from: adr-038
+    to: adr-032
+    rel: rationale
+
+  - from: adr-038
+    to: adr-008
+    rel: see-also
+
+  - from: howto-build-distribute
+    to: adr-038
+    rel: rationale
+
+  # ADR-039: in operator for plan limit
+  - from: adr-039
+    to: adr-034
+    rel: rationale
+
+  - from: adr-039
+    to: adr-026
+    rel: see-also
+
+  - from: adr-039
+    to: adr-030
+    rel: see-also
+
+  - from: changelog-v1-2-2
+    to: adr-039
+    rel: rationale
+
+  - from: howto-deploy-worker
+    to: adr-039
+    rel: rationale
+
   # Changelog cross-links
-  - from: changelog-v1-2-1
+  - from: changelog-v0-3-1
     to: adr-026
     rel: rationale
 
-  - from: changelog-v1-2-1
+  - from: changelog-v0-3-1
     to: howto-manage-account
+    rel: see-also
+
+  - from: changelog-v1-0-beta
+    to: howto-build-distribute
+    rel: see-also
+
+  - from: changelog-v1-0-beta
+    to: adr-038
+    rel: rationale
+
+  - from: changelog-v1-0-beta
+    to: adr-008
+    rel: rationale
+
+  - from: changelog-v1-2-2
+    to: howto-manage-account
+    rel: see-also
+
+  - from: changelog-v1-2-2
+    to: howto-deploy-worker
     rel: see-also
 
   # Security cross-links

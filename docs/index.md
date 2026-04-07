@@ -26,7 +26,7 @@ flourish is a macOS menu bar application that improves prompts using Large Langu
 
 - [v1.2.2](changelog/v1.2.2.md) — Worker bug fix: Pro plan limit now correctly unlimited; reset date hidden for Pro users
 - [v1.0-beta](changelog/v1.0-beta.md) — First distributable DMG release (2026-04-07)
-- [v1.2.1](changelog/v1.2.1.md) — Pro plan pricing reduced (2,99 €/mo monthly, 29,99 €/yr annual)
-- [v1.2.0](changelog/v1.2.0.md) — Lowercase project rename; explicit XcodeGen scheme
-- [v1.1.0](changelog/v1.1.0.md) — Target platform picker; forest-green primary buttons
-- [v1.0.0](changelog/v1.0.0.md) — Initial release: overlay workflow, dual-provider support, history, profiles, statistics
+- [v0.3.1](changelog/v0.3.1.md) — Pro plan pricing reduced (2,99 €/mo monthly, 29,99 €/yr annual)
+- [v0.3.0](changelog/v0.3.0.md) — Lowercase project rename; explicit XcodeGen scheme
+- [v0.2.0](changelog/v0.2.0.md) — Target platform picker; forest-green primary buttons
+- [v0.1.0](changelog/v0.1.0.md) — Initial release: overlay workflow, dual-provider support, history, profiles, statistics

@@ -45,16 +45,16 @@ def paint_stroke(pts, r, color=FG):
 R = 7   # stroke radius
 
 # ── Shaft: wobbly S-curve ──────────────────────────────────────────────────────
-shaft = cbez((450, 356), (560, 370), (730, 336), (838, 352))
+shaft = cbez((450, 356), (560, 370), (700, 336), (778, 352))
 paint_stroke(shaft, R)
 
 # ── Chevron: two separate arms meeting at the tip (">" shape) ─────────────────
-tip = (880, 352)
+tip = (820, 352)
 
-top = cbez((838, 324), (848, 318), (868, 334), tip)
+top = cbez((778, 324), (788, 318), (808, 334), tip)
 paint_stroke(top, R)
 
-bot = cbez(tip, (868, 370), (848, 386), (838, 380))
+bot = cbez(tip, (808, 370), (788, 386), (778, 380))
 paint_stroke(bot, R)
 
 # ── "Drag to install" caption ─────────────────────────────────────────────────

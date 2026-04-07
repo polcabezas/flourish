@@ -6,6 +6,9 @@ APP_BUILD="$PROJECT_DIR/build/DerivedData/Build/Products/Release/flourish.app"
 DMG_OUT="$PROJECT_DIR/flourish.dmg"
 STAGING="/tmp/flourish-dmg-staging"
 
+echo "==> Regenerating .xcodeproj from project.yml..."
+make generate
+
 echo "==> Building flourish (Release)..."
 xcodebuild \
   -project "$PROJECT_DIR/flourish.xcodeproj" \

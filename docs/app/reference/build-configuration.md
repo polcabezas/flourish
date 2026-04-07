@@ -48,6 +48,7 @@ See [ADR-022](../adr/022-lowercase-project-name.md) for why the scheme name is l
 | `Defaults` | GitHub (sindresorhus/Defaults) `v8.0+` | Type-safe UserDefaults |
 | `LaunchAtLogin` | GitHub (sindresorhus/LaunchAtLogin) `v5.0+` | Login item management |
 | `GRDB.swift` | GitHub (groue/GRDB.swift) `v6.0+` | SQLite ORM |
+| `supabase-swift` | GitHub (supabase/supabase-swift) `v2.0+` | Auth, Realtime, and PostgREST client |
 
 ### Build configurations
 
@@ -99,16 +100,17 @@ See [ADR-008: Ad-hoc Signing](../adr/008-adhoc-signing.md) for rationale.
 **File:** `flourish/Config/Secrets.xcconfig` (gitignored)  
 **Template:** `flourish/Config/Secrets.xcconfig.example` (committed, safe — no real values)
 
-This file supplies the proxy connection details that are injected into `Info.plist` at build time. It must exist before building. Copy the example and fill in the values (obtain from the team):
+This file supplies runtime connection details injected into `Info.plist` at build time. It must exist before building. Copy the template and fill in the values (obtain from the team):
 
 ```
-flourish_PROXY_URL   = flourish-proxy.yoursubdomain.workers.dev
-flourish_PROXY_TOKEN = <proxy bearer token>
+flourish_PROXY_URL = flourish-proxy.yoursubdomain.workers.dev
+SUPABASE_URL       = <your-project-ref>.supabase.co
+SUPABASE_ANON_KEY  = <your-anon-public-key>
 ```
 
-**Important:** `flourish_PROXY_URL` must be the hostname only — no `https://` prefix. xcconfig files treat `//` as a line comment, which would silently truncate any URL with a scheme.
+**Important:** `flourish_PROXY_URL` and `SUPABASE_URL` must be hostnames only — no `https://` prefix. xcconfig files treat `//` as a line comment, which would silently truncate any URL with a scheme. The app prepends `https://` at runtime.
 
-`project.yml` maps `Secrets.xcconfig` via the `configFiles` key, making both variables available as build settings that are substituted into `Info.plist` entries `flourishProxyURL` and `flourishProxyToken`.
+`project.yml` maps `Secrets.xcconfig` via the `configFiles` key, making all three variables available as build settings that are substituted into `Info.plist`.
 
 ---
 
@@ -124,7 +126,8 @@ flourish_PROXY_TOKEN = <proxy bearer token>
 | `NSAccessibilityUsageDescription` | String | Shown when requesting Accessibility permission |
 | `NSAppleEventsUsageDescription` | String | Shown when interacting with other apps |
 | `flourishProxyURL` | `$(flourish_PROXY_URL)` | Proxy hostname injected from `Secrets.xcconfig` |
-| `flourishProxyToken` | `$(flourish_PROXY_TOKEN)` | Proxy bearer token injected from `Secrets.xcconfig` |
+| `supabaseURL` | `$(SUPABASE_URL)` | Supabase project hostname injected from `Secrets.xcconfig` |
+| `supabaseAnonKey` | `$(SUPABASE_ANON_KEY)` | Supabase public anon key injected from `Secrets.xcconfig` |
 
 ---
 
@@ -145,13 +148,11 @@ This prevents DerivedData from going into `~/Library/Developer/Xcode/DerivedData
 
 ## DMG Packaging (`build-dmg.sh`)
 
-Uses `create-dmg` to build a distributable disk image:
-
 ```bash
 ./build-dmg.sh
 ```
 
-The script expects the built `.app` at `build/DerivedData/Build/Products/Release/flourish.app` and produces a `.dmg` in the project root or a `dist/` folder.
+The script runs `make generate` first (to keep `.xcodeproj` in sync with `project.yml`), then builds a Release binary via `xcodebuild`, and packages the result into a `.dmg` using `hdiutil`. The output is written to the project root as `flourish.dmg`. The built `.app` is expected at `build/DerivedData/Build/Products/Release/flourish.app`.
 
 ---
 

@@ -21,7 +21,7 @@ hubs:
   - id: adr-index
     path: docs/app/adr/README.md
     title: ADR Index
-    description: Index of all 26 Architectural Decision Records
+    description: Index of all 31 Architectural Decision Records
 
   - id: security
     path: docs/platform/security.md
@@ -296,6 +296,31 @@ docs:
 
   - id: adr-026
     path: docs/app/adr/026-stripe-billing-via-worker.md
+    type: adr
+    component: app
+
+  - id: adr-027
+    path: docs/app/adr/027-supabase-postgres-over-d1.md
+    type: adr
+    component: app
+
+  - id: adr-028
+    path: docs/app/adr/028-es256-jwt-verification.md
+    type: adr
+    component: app
+
+  - id: adr-029
+    path: docs/app/adr/029-supabase-user-lifecycle-triggers.md
+    type: adr
+    component: app
+
+  - id: adr-030
+    path: docs/app/adr/030-plans-billing-ui.md
+    type: adr
+    component: app
+
+  - id: adr-031
+    path: docs/app/adr/031-account-usage-realtime-refresh.md
     type: adr
     component: app
 

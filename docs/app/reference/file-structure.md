@@ -10,7 +10,7 @@ Every source file in the flourish project with its responsibility and key export
 |------|---------|
 | `project.yml` | XcodeGen configuration — source of truth for the Xcode project. Defines bundle ID, deployment target, Swift version, SPM dependencies, code signing, build settings, and `configFiles` mapping to `Secrets.xcconfig` |
 | `Makefile` | Three targets: `generate` (xcodegen), `open` (generate + open Xcode), `clean` (remove .xcodeproj and build/) |
-| `build-dmg.sh` | Shell script for packaging a distributable `.dmg` using `create-dmg` |
+| `build-dmg.sh` | Shell script that regenerates the `.xcodeproj` (`make generate`), builds a Release binary, and packages a distributable `.dmg` using `hdiutil` |
 | `generate-icons.swift` | Swift script to generate all required app icon sizes from a source image |
 | `.gitignore` | Ignores `*.xcodeproj`, `build/`, `DerivedData/`, `.DS_Store`, `Secrets.xcconfig` |
 
@@ -40,7 +40,7 @@ Every source file in the flourish project with its responsibility and key export
 
 | File | Key Exports |
 |------|-------------|
-| `Config/Secrets.xcconfig` | Gitignored. Provides `flourish_PROXY_URL` (hostname only) and `flourish_PROXY_TOKEN` as build settings injected into `Info.plist` |
+| `Config/Secrets.xcconfig` | Gitignored. Provides `flourish_PROXY_URL`, `SUPABASE_URL`, and `SUPABASE_ANON_KEY` as build settings injected into `Info.plist`. All URL values are hostnames only (no `https://`; the app prepends it at runtime) |
 | `Config/Secrets.xcconfig.example` | Committed template. Safe to commit — contains placeholder values only |
 
 ---

@@ -8,7 +8,6 @@ How to generate the Xcode project, build a release binary, and package a distrib
 
 - Xcode 15+
 - XcodeGen: `brew install xcodegen`
-- `create-dmg` (for DMG packaging): `brew install create-dmg`
 - `flourish/Config/Secrets.xcconfig` present and filled in (see below)
 
 ---
@@ -21,14 +20,15 @@ The app reads proxy connection details from `Secrets.xcconfig`, which is gitigno
 cp flourish/Config/Secrets.xcconfig.example flourish/Config/Secrets.xcconfig
 ```
 
-Open `Secrets.xcconfig` and fill in the two values (obtain them from the team):
+Open `Secrets.xcconfig` and fill in the values (obtain them from the team):
 
 ```
-flourish_PROXY_URL   = flourish-proxy.yoursubdomain.workers.dev
-flourish_PROXY_TOKEN = <proxy bearer token>
+flourish_PROXY_URL = flourish-proxy.yoursubdomain.workers.dev
+SUPABASE_URL       = <your-project-ref>.supabase.co
+SUPABASE_ANON_KEY  = <your-anon-public-key>
 ```
 
-`flourish_PROXY_URL` must be the hostname only — no `https://` prefix (xcconfig treats `//` as a comment).
+`flourish_PROXY_URL` and `SUPABASE_URL` must be hostnames only — no `https://` prefix (xcconfig treats `//` as a comment). The app prepends `https://` at runtime.
 
 ---
 
@@ -85,7 +85,7 @@ chmod +x build-dmg.sh
 ./build-dmg.sh
 ```
 
-The script uses `create-dmg` to produce a distributable `.dmg` file. Inspect `build-dmg.sh` for the exact output path and DMG configuration (window size, icon positions, background).
+The script first runs `make generate` to ensure the `.xcodeproj` matches the current `project.yml`, then builds a Release binary and packages it as a `.dmg` using `hdiutil`. The output is written to the project root as `flourish.dmg`.
 
 ---
 

@@ -59,11 +59,11 @@ mkdir -p "$STAGING/.background"
 cp -R "$APP_BUILD" "$STAGING/"
 ln -s /Applications "$STAGING/Applications"
 
-# Background image
+# Background image — source is @2x (1320×800); generate 1x (660×400) via sips
 BG_SRC="$PROJECT_DIR/assets/dmg-background.png"
 if [ -f "$BG_SRC" ]; then
-  cp "$BG_SRC" "$STAGING/.background/background.png"
   cp "$BG_SRC" "$STAGING/.background/background@2x.png"
+  sips -z $WIN_H $WIN_W "$BG_SRC" --out "$STAGING/.background/background.png" > /dev/null
 fi
 
 # Volume icon

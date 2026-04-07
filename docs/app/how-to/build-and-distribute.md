@@ -103,7 +103,7 @@ The script:
 2. Regenerates `.xcodeproj` from `project.yml` (output suppressed).
 3. Builds a Release binary via `xcodebuild` (output suppressed; errors surface on failure).
 4. Copies `AppIcon.icns` from the built app as `.VolumeIcon.icns` in the staging folder and sets the custom icon bit via `SetFile -a C`, so the mounted DMG shows the flourish icon in Finder.
-5. Applies `assets/dmg-background.png` as the Finder window background and positions icons using AppleScript.
+5. Derives the DMG background from `assets/dmg-background.png` (1320×800, @2x source): copies it as `background@2x.png` and uses `sips` to generate a half-size `background.png` (660×400) for the 1x slot. Applies both via AppleScript so the background is crisp on Retina displays and correctly sized on non-Retina.
 6. Converts the volume to a compressed UDZO image and writes `flourish-<VERSION>.dmg` to the project root.
 
 `SetFile` ships with Xcode Command Line Tools. If absent, icon assignment is silently skipped and the build continues.

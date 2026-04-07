@@ -28,20 +28,24 @@ TMP_DMG="/tmp/flourish-tmp.dmg"
 WIN_W=660
 WIN_H=400
 
-echo "==> Stamping version $VERSION into Info.plist..."
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" \
-  "$PROJECT_DIR/flourish/Info.plist"
+  "$PROJECT_DIR/flourish/Info.plist" > /dev/null
 
 echo "==> Regenerating .xcodeproj from project.yml..."
-make generate
+make generate > /dev/null
 
 echo "==> Building flourish (Release)..."
-xcodebuild \
+BUILD_LOG=$(xcodebuild \
   -project "$PROJECT_DIR/flourish.xcodeproj" \
   -scheme flourish \
   -configuration Release \
   -derivedDataPath "$PROJECT_DIR/build/DerivedData" \
-  build | grep -E "error:|warning:|BUILD SUCCEEDED|BUILD FAILED" | grep -v "^$" || true
+  build 2>&1)
+if echo "$BUILD_LOG" | grep -q "BUILD FAILED"; then
+  echo "$BUILD_LOG" | grep "error:" | head -20
+  echo "ERROR: Build failed."
+  exit 1
+fi
 
 # Verify the build actually succeeded
 if [ ! -d "$APP_BUILD" ]; then
@@ -69,9 +73,9 @@ if [ -f "$ICNS_SRC" ]; then
   SetFile -a C "$STAGING" 2>/dev/null || true
 fi
 
-# Create writable image (slightly oversized to leave room for AppleScript tweaks)
+# Create writable image (auto-sized from staging folder contents)
 hdiutil create -volname "flourish" -srcfolder "$STAGING" -ov -format UDRW \
-  -size $((WIN_W * WIN_H / 100))k "$TMP_DMG" -quiet
+  "$TMP_DMG" -quiet
 
 # Mount and customise the window via AppleScript
 MOUNT_INFO=$(hdiutil attach "$TMP_DMG" -readwrite -nobrowse -noverify)

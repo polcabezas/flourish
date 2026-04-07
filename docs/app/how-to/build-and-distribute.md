@@ -85,24 +85,28 @@ chmod +x build-dmg.sh
 ./build-dmg.sh
 ```
 
-The script is interactive — it will prompt for the version before building:
+The script is interactive. It prints the last released version for reference, then prompts for the new one:
 
 ```
 Last generated version: 1.0-beta
-Enter version to build (e.g. 1.0-beta, 1.1, 2.0): _
+Enter version to build (e.g. 1.0-beta, 1.1, 2.0): 1.1
+==> Regenerating .xcodeproj from project.yml...
+==> Building flourish (Release)...
+==> Packaging DMG...
+==> Done: /path/to/flourish-1.1.dmg (12M)
 ```
 
-It finds the most recent `flourish-*.dmg` in the project root and prints it as context. Enter the new version string and press Return.
+If the build fails, the first 20 `error:` lines from `xcodebuild` are printed, then the script exits.
 
-The script then:
+The script:
 1. Stamps `flourish/Info.plist` (`CFBundleShortVersionString`) with the entered version via `PlistBuddy`.
-2. Runs `make generate` to sync the `.xcodeproj` with `project.yml`.
-3. Builds a Release binary via `xcodebuild`.
-4. Copies `AppIcon.icns` from the built app as `.VolumeIcon.icns` in the staging folder and sets the custom icon bit via `SetFile -a C`, so the mounted DMG shows the flourish icon in Finder instead of the generic disk image icon.
-5. Applies `assets/dmg-background.png` (sage-green canvas matching the app's sign-in header, hand-drawn dark-green chevron arrow, "Drag to install" caption) as the Finder window background for both 1× and 2× slots, and positions icons using AppleScript.
+2. Regenerates `.xcodeproj` from `project.yml` (output suppressed).
+3. Builds a Release binary via `xcodebuild` (output suppressed; errors surface on failure).
+4. Copies `AppIcon.icns` from the built app as `.VolumeIcon.icns` in the staging folder and sets the custom icon bit via `SetFile -a C`, so the mounted DMG shows the flourish icon in Finder.
+5. Applies `assets/dmg-background.png` as the Finder window background and positions icons using AppleScript.
 6. Converts the volume to a compressed UDZO image and writes `flourish-<VERSION>.dmg` to the project root.
 
-`SetFile` ships with Xcode Command Line Tools. If it is absent, icon assignment is silently skipped and the build continues.
+`SetFile` ships with Xcode Command Line Tools. If absent, icon assignment is silently skipped and the build continues.
 
 > **Version source of truth:** `build-dmg.sh` is the only place you set the release version. `Info.plist` holds `dev` at rest and is overwritten at build time. Do not edit `CFBundleShortVersionString` in `Info.plist` directly. See [ADR-038](../adr/038-build-script-version-source-of-truth.md).
 

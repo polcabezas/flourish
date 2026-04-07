@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>flourish</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -12,42 +14,40 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>flourish</string>
-	<key>CFBundleDisplayName</key>
-	<string>flourish</string>
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>dev</string>
+	<string>1.0-beta</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.personal.flourish</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>flourish</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSUIElement</key>
 	<true/>
-	<key>NSPrincipalClass</key>
-	<string>NSApplication</string>
 	<key>NSAccessibilityUsageDescription</key>
 	<string>flourish needs accessibility access to paste improved prompts into other apps.</string>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>flourish uses Apple Events to interact with other applications.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Personal use</string>
-	<key>flourishProxyURL</key>
-	<string>$(flourish_PROXY_URL)</string>
-	<key>SupabaseURL</key>
-	<string>$(SUPABASE_URL)</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
 	<key>SupabaseAnonKey</key>
 	<string>$(SUPABASE_ANON_KEY)</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>flourish</string>
-			</array>
-			<key>CFBundleURLName</key>
-			<string>com.personal.flourish</string>
-		</dict>
-	</array>
+	<key>SupabaseURL</key>
+	<string>$(SUPABASE_URL)</string>
+	<key>flourishProxyURL</key>
+	<string>$(flourish_PROXY_URL)</string>
 </dict>
 </plist>

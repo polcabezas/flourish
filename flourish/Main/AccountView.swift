@@ -74,9 +74,11 @@ private struct AccountInfoSection: View {
                                 .foregroundColor(.flourishTextSecondary)
                         }
                         Spacer()
-                        Text("resets \(formattedReset(u.resetAt))")
-                            .font(.flourishMeta)
-                            .foregroundColor(.flourishTextTertiary)
+                        if u.limit != nil {
+                            Text("resets \(formattedReset(u.resetAt))")
+                                .font(.flourishMeta)
+                                .foregroundColor(.flourishTextTertiary)
+                        }
                     }
                     if let cap = u.limit {
                         GeometryReader { geo in

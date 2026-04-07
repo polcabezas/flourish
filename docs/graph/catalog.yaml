@@ -21,7 +21,7 @@ hubs:
   - id: adr-index
     path: docs/app/adr/README.md
     title: ADR Index
-    description: Index of all 31 Architectural Decision Records
+    description: Index of all 39 Architectural Decision Records
 
   - id: security
     path: docs/platform/security.md
@@ -324,6 +324,46 @@ docs:
     type: adr
     component: app
 
+  - id: adr-032
+    path: docs/app/adr/032-git-sync-before-dmg-build.md
+    type: adr
+    component: app
+
+  - id: adr-033
+    path: docs/app/adr/033-limit-reached-popup-window.md
+    type: adr
+    component: app
+
+  - id: adr-034
+    path: docs/app/adr/034-unlimited-pro-plan.md
+    type: adr
+    component: app
+
+  - id: adr-035
+    path: docs/app/adr/035-contentshape-for-plain-button-hit-area.md
+    type: adr
+    component: app
+
+  - id: adr-036
+    path: docs/app/adr/036-rotating-overlay-placeholders.md
+    type: adr
+    component: app
+
+  - id: adr-037
+    path: docs/app/adr/037-loader-success-state-and-paste-detection.md
+    type: adr
+    component: app
+
+  - id: adr-038
+    path: docs/app/adr/038-build-script-version-source-of-truth.md
+    type: adr
+    component: app
+
+  - id: adr-039
+    path: docs/app/adr/039-worker-plan-limit-in-operator.md
+    type: adr
+    component: app
+
   # How-To (account)
   - id: howto-manage-account
     path: docs/app/how-to/manage-account.md
@@ -348,5 +388,15 @@ docs:
 
   - id: changelog-v1-2-1
     path: docs/changelog/v1.2.1.md
+    type: changelog
+    component: platform
+
+  - id: changelog-v1-0-beta
+    path: docs/changelog/v1.0-beta.md
+    type: changelog
+    component: platform
+
+  - id: changelog-v1-2-2
+    path: docs/changelog/v1.2.2.md
     type: changelog
     component: platform

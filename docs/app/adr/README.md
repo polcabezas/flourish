@@ -48,6 +48,7 @@ ADRs are **never modified after acceptance**. If a decision is reversed or super
 | [036](036-rotating-overlay-placeholders.md) | Rotating playful placeholders in the overlay input | Accepted |
 | [037](037-loader-success-state-and-paste-detection.md) | Loader success state, AX-based paste detection, and fixed-frame NSHostingView | Accepted |
 | [038](038-build-script-version-source-of-truth.md) | `build-dmg.sh` as the single source of truth for the app version | Accepted |
+| [039](039-worker-plan-limit-in-operator.md) | Use `in` operator for nullable plan limit lookup in the Worker | Accepted |
 
 ---
 

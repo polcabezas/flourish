@@ -68,7 +68,7 @@ async function handleImprove(request, env) {
   let row = await getUserRow(env, userId);
   row = await maybeResetMonth(env, userId, row);
 
-  const limit = PLAN_LIMITS[row.subscription] ?? PLAN_LIMITS.free;
+  const limit = row.subscription in PLAN_LIMITS ? PLAN_LIMITS[row.subscription] : PLAN_LIMITS.free;
   if (limit !== null && row.requests_this_month >= limit)
     return json({ error: "monthly_limit_reached", plan: row.subscription, limit }, 429);
 
@@ -112,7 +112,7 @@ async function handleAccountUsage(request, env) {
   if (!row) return new Response("Not Found", { status: 404 });
   row = await maybeResetMonth(env, claims.sub, row);
 
-  const limit = PLAN_LIMITS[row.subscription] ?? PLAN_LIMITS.free;
+  const limit = row.subscription in PLAN_LIMITS ? PLAN_LIMITS[row.subscription] : PLAN_LIMITS.free;
   return json({
     plan: row.subscription,
     requests_this_month: row.requests_this_month,

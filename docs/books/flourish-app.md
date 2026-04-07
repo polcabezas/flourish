@@ -26,7 +26,7 @@ For a developer understanding the codebase end-to-end.
 5. [Paste Automation](../app/explanation/paste-automation.md) — Clipboard + CGEvent mechanics
 6. [LLM Provider Abstraction](../app/explanation/llm-provider-abstraction.md) — Protocol design and proxy integration
 7. [Data Persistence Strategy](../app/explanation/data-persistence-strategy.md) — Info.plist, SQLite, UserDefaults decisions
-8. [ADR Index](../app/adr/README.md) — All 31 architectural decisions
+8. [ADR Index](../app/adr/README.md) — All 39 architectural decisions
 
 ---
 

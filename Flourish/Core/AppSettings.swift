@@ -20,6 +20,10 @@ extension Defaults.Keys {
     /// Custom base prompt template. Empty string = use the hardcoded default in BasePrompt.
     static let basePromptTemplate = Key<String>("basePromptTemplate", default: "")
 
+    // MARK: Account
+    /// Cached plan tier — updated from Worker on usage load, used for UI while loading.
+    static let lastKnownSubscription = Key<String>("lastKnownSubscription", default: "free")
+
     // MARK: General
     static let launchAtLogin  = Key<Bool>("launchAtLogin",  default: true)
     static let showDockIcon   = Key<Bool>("showDockIcon",   default: false)

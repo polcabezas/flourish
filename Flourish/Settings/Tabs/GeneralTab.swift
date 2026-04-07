@@ -23,7 +23,7 @@ struct GeneralTab: View {
             VStack(alignment: .leading, spacing: FS.sm) {
                 SectionLabel("System")
                 LaunchAtLogin.Toggle {
-                    Text("Launch Flourish at login")
+                    Text("Launch flourish at login")
                         .font(.flourishBody)
                 }
                 .onChange(of: launchAtLogin) { newValue in
@@ -31,7 +31,7 @@ struct GeneralTab: View {
                 }
                 .pointerCursor()
 
-                Text("Flourish runs quietly in the menu bar and is always ready when you need it.")
+                Text("flourish runs quietly in the menu bar and is always ready when you need it.")
                     .font(.flourishMeta)
                     .foregroundColor(.flourishTextSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -53,7 +53,7 @@ struct GeneralTab: View {
                 SectionLabel("About")
                 HStack(spacing: FS.xl) {
                     VStack(alignment: .leading, spacing: FS.xs) {
-                        Text("Flourish")
+                        Text("flourish")
                             .font(.flourishBody)
                             .fontWeight(.medium)
                         Text("Version \(appVersion) (\(buildNumber))")

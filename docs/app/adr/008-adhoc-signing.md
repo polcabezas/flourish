@@ -7,13 +7,13 @@
 
 ## Decision
 
-Sign Flourish with ad-hoc signing (identity: `-`) rather than a Developer ID certificate. Do not enable Hardened Runtime or notarization.
+Sign flourish with ad-hoc signing (identity: `-`) rather than a Developer ID certificate. Do not enable Hardened Runtime or notarization.
 
 ---
 
 ## Context
 
-Flourish is a personal-use tool, not a commercial product distributed through the Mac App Store or official channels. Code signing in macOS exists on a spectrum:
+flourish is a personal-use tool, not a commercial product distributed through the Mac App Store or official channels. Code signing in macOS exists on a spectrum:
 
 1. **No signing** — macOS Gatekeeper blocks the app entirely on most systems.
 2. **Ad-hoc signing** — App is signed with a self-generated identity. Runs on the build machine without Gatekeeper issues. Shows a warning on other machines (right-click → Open to bypass).
@@ -21,7 +21,7 @@ Flourish is a personal-use tool, not a commercial product distributed through th
 4. **Notarized** — Developer ID + Apple's scan + stapled ticket. Provides the strongest trust for distributed apps.
 5. **App Store** — Sandboxed, App Store reviewed.
 
-Flourish requires **no App Sandbox** (CGEvent paste simulation is blocked by the sandbox). This eliminates option 5 and makes option 4 more complex (notarization requires Hardened Runtime, which has its own capability implications).
+flourish requires **no App Sandbox** (CGEvent paste simulation is blocked by the sandbox). This eliminates option 5 and makes option 4 more complex (notarization requires Hardened Runtime, which has its own capability implications).
 
 ---
 
@@ -46,7 +46,7 @@ Ad-hoc signing satisfies the current requirements:
 - No certificate management or Apple Developer account is required.
 - No Hardened Runtime entitlements needed.
 
-If Flourish is ever distributed publicly, upgrading to Developer ID + notarization is a configuration change in `project.yml` — no code changes required.
+If flourish is ever distributed publicly, upgrading to Developer ID + notarization is a configuration change in `project.yml` — no code changes required.
 
 ---
 
@@ -56,7 +56,7 @@ If Flourish is ever distributed publicly, upgrading to Developer ID + notarizati
 - On other machines, first launch requires right-click → Open to bypass Gatekeeper. (User experience trade-off.)
 - No notarization ticket → Gatekeeper always checks with Apple's servers on first open (if online). Acceptable.
 - Keychain items cannot use data protection access control classes (no biometric unlock). Default Keychain access used instead. ✓
-- `Flourish.entitlements` has no sandbox entitlement. `com.apple.security.app-sandbox = false`. ✓
+- `flourish.entitlements` has no sandbox entitlement. `com.apple.security.app-sandbox = false`. ✓
 
 ---
 

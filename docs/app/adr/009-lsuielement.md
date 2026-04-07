@@ -7,7 +7,7 @@
 
 ## Decision
 
-Set `LSUIElement = YES` in `Info.plist`, making Flourish launch as a menu bar agent by default (no Dock icon, no application menu). Provide a toggle in Settings to show a Dock icon.
+Set `LSUIElement = YES` in `Info.plist`, making flourish launch as a menu bar agent by default (no Dock icon, no application menu). Provide a toggle in Settings to show a Dock icon.
 
 ---
 
@@ -15,7 +15,7 @@ Set `LSUIElement = YES` in `Info.plist`, making Flourish launch as a menu bar ag
 
 A "menu bar agent" (also called a "background app" or "faceless app") is a macOS app that does not appear in the Dock or the application menu bar. It is accessed exclusively via a status item in the system menu bar.
 
-Flourish's primary interaction surface is the overlay panel, activated by a global hotkey. The main window (for settings, profiles, history) is a secondary interface. The application does not need a persistent Dock presence.
+flourish's primary interaction surface is the overlay panel, activated by a global hotkey. The main window (for settings, profiles, history) is a secondary interface. The application does not need a persistent Dock presence.
 
 `LSUIElement = YES` in `Info.plist` sets the app's activation policy to `.accessory` at launch, achieving the menu-bar-agent behavior.
 
@@ -24,7 +24,7 @@ Flourish's primary interaction surface is the overlay panel, activated by a glob
 ## Alternatives Considered
 
 ### Standard app (LSUIElement = NO)
-Shows a Dock icon and a full application menu. Most macOS users expect tools like Flourish to live in the menu bar only. A Dock icon would be unexpected and add visual clutter. Rejected as default, but offered as a user preference.
+Shows a Dock icon and a full application menu. Most macOS users expect tools like flourish to live in the menu bar only. A Dock icon would be unexpected and add visual clutter. Rejected as default, but offered as a user preference.
 
 ### Launch as agent, no toggle
 Maximum minimalism. However, some users prefer a Dock icon for easier Command+Tab access to the main window. The toggle accommodates both preferences.
@@ -51,7 +51,7 @@ This changes the policy at runtime. When `.regular` is set, the app gains a Dock
 - Global hotkey provides the primary access path — no need to find the app in the Dock. ✓
 - Users who want a Dock icon can enable it in Settings → General. ✓
 - The app does not appear in Cmd+Tab by default (`.accessory` policy). With the Dock icon enabled (`.regular` policy), it appears in Cmd+Tab. ✓
-- Some macOS accessibility features and system UI interactions behave differently for `.accessory` vs `.regular` apps. No issues observed for Flourish's use cases.
+- Some macOS accessibility features and system UI interactions behave differently for `.accessory` vs `.regular` apps. No issues observed for flourish's use cases.
 
 ---
 

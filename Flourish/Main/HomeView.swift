@@ -112,7 +112,7 @@ private struct HeroCard: View {
                 .fill(Color.flourishSurfaceHero)
 
             // Subtle accent — large faded f mark in corner
-            FlourishFShape(color: Color.white.opacity(0.04))
+            flourishFShape(color: Color.white.opacity(0.04))
                 .frame(width: 140, height: 215)
                 .offset(x: -10, y: 30)
                 .clipped()
@@ -121,7 +121,7 @@ private struct HeroCard: View {
                 Text("Improve anything you write")
                     .font(.flourishHeading)
                     .foregroundColor(.white)
-                Text("Press your shortcut from any app — Flourish improves your prompt instantly.")
+                Text("Press your shortcut from any app — flourish improves your prompt instantly.")
                     .font(.flourishBody)
                     .foregroundColor(.white.opacity(0.65))
                     .fixedSize(horizontal: false, vertical: true)
@@ -378,7 +378,7 @@ private struct PromptCell: View {
 private struct EmptyHistoryView: View {
     var body: some View {
         VStack(spacing: FS.sm) {
-            FlourishLogoSymbol(size: 36, color: .flourishTextTertiary.opacity(0.5))
+            flourishLogoSymbol(size: 36, color: .flourishTextTertiary.opacity(0.5))
             Text("No improvements yet")
                 .font(.flourishBody)
                 .foregroundColor(.flourishTextSecondary)

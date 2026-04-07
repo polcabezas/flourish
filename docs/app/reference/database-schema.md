@@ -1,6 +1,6 @@
 # Database Schema Reference
 
-The SQLite database used by Flourish for prompt history storage, managed via the GRDB Swift package.
+The SQLite database used by flourish for prompt history storage, managed via the GRDB Swift package.
 
 ---
 
@@ -138,3 +138,121 @@ See [ADR-012: Max 500 History Entries](../adr/012-history-max-entries.md).
 - [Data Persistence Strategy](../explanation/data-persistence-strategy.md)
 - [ADR-003: GRDB over CoreData](../adr/003-grdb-over-coredata.md)
 - [ADR-012: Max 500 History Entries](../adr/012-history-max-entries.md)
+- [Supabase user_subscriptions table](#supabase-user_subscriptions-table)
+
+---
+
+## Supabase: `user_subscriptions` table
+
+Per-user subscription state and monthly usage counters live in Supabase PostgreSQL, accessed by the Cloudflare Worker via the Supabase REST API using the `service_role` key.
+
+### Connection
+
+- **Project URL:** configured as `SUPABASE_URL` in `wrangler.toml` (public, non-secret)
+- **Auth:** `SUPABASE_SERVICE_ROLE_KEY` Cloudflare secret — bypasses Row Level Security; used only by the Worker
+- **Access pattern:** Worker makes HTTPS calls to `${SUPABASE_URL}/rest/v1/user_subscriptions`
+
+### Schema
+
+```sql
+CREATE TABLE IF NOT EXISTS user_subscriptions (
+  user_id             TEXT PRIMARY KEY,
+  email               TEXT NOT NULL,
+  stripe_customer_id  TEXT,
+  subscription        TEXT NOT NULL DEFAULT 'free',
+  requests_this_month INTEGER NOT NULL DEFAULT 0,
+  reset_at            TEXT NOT NULL DEFAULT to_char(NOW(), 'YYYY-MM-01')
+);
+```
+
+### Column descriptions
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `user_id` | `TEXT` | Supabase Auth `uid` (UUID as string). Primary key |
+| `email` | `TEXT` | User's email from Supabase Auth |
+| `stripe_customer_id` | `TEXT` | Stripe `cus_…` ID. `NULL` until first checkout |
+| `subscription` | `TEXT` | `'free'` or `'pro'`. Updated by Stripe webhooks |
+| `requests_this_month` | `INTEGER` | Counter, incremented atomically via RPC on each `/improve` call |
+| `reset_at` | `TEXT` | ISO-8601 date `YYYY-MM-DD` of the start of the current billing period (e.g. `"2026-04-01"`). Worker resets counter when current date exceeds this value + 1 month |
+
+### RPC: `increment_user_requests`
+
+An atomic increment function to avoid race conditions from concurrent requests:
+
+```sql
+CREATE OR REPLACE FUNCTION increment_user_requests(p_user_id TEXT)
+RETURNS void LANGUAGE sql SECURITY DEFINER AS $$
+  UPDATE user_subscriptions
+  SET requests_this_month = requests_this_month + 1
+  WHERE user_id = p_user_id;
+$$;
+```
+
+Called by the Worker via `POST /rest/v1/rpc/increment_user_requests` with `{ "p_user_id": "<uid>" }`.
+
+### Row Level Security
+
+```sql
+ALTER TABLE user_subscriptions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can read own subscription"
+  ON user_subscriptions FOR SELECT
+  USING (auth.uid()::text = user_id);
+```
+
+- Users can `SELECT` their own row using the Supabase anon/user JWT.
+- All writes (INSERT, UPDATE, DELETE) are performed exclusively by the Worker using the `service_role` key, which bypasses RLS.
+
+### User lifecycle triggers
+
+Rows are created and deleted automatically by PostgreSQL triggers:
+
+```sql
+-- Auto-create on sign-up
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  INSERT INTO public.user_subscriptions (user_id, email, subscription, requests_this_month, reset_at)
+  VALUES (NEW.id::text, COALESCE(NEW.email, ''), 'free', 0,
+          to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-01'))
+  ON CONFLICT (user_id) DO NOTHING;
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Auto-delete on account deletion
+CREATE OR REPLACE FUNCTION public.handle_user_deleted()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  DELETE FROM public.user_subscriptions WHERE user_id = OLD.id::text;
+  RETURN OLD;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER on_auth_user_deleted
+  AFTER DELETE ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_user_deleted();
+```
+
+The Worker's `POST /account/create` route performs an idempotent upsert as a safety net (e.g. for users created before the trigger existed).
+
+Note: When a user is deleted, the trigger removes their `user_subscriptions` row but does **not** cancel their Stripe subscription. Stripe subscription cancellation must be handled separately via the Stripe dashboard or API before deleting the Supabase user.
+
+### Viewing data
+
+Supabase dashboard → Table Editor → `user_subscriptions`. All user data (plan, usage, Stripe customer ID) is visible here.
+
+---
+
+## Related
+
+- [Worker API Reference](worker-api.md)
+- [ADR-027: Supabase PostgreSQL over D1](../adr/027-supabase-postgres-over-d1.md)
+- [ADR-029: Supabase user lifecycle triggers](../adr/029-supabase-user-lifecycle-triggers.md)
+- [ADR-023: Supabase Auth strategy](../adr/023-supabase-auth-strategy.md)
+- [Data Persistence Strategy](../explanation/data-persistence-strategy.md)

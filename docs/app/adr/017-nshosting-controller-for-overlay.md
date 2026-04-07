@@ -13,7 +13,7 @@ Embed the `OverlayView` SwiftUI hierarchy into `OverlayPanel` via `NSHostingCont
 
 ## Context
 
-The Flourish overlay must resize dynamically as the user types. The `TextEditor` inside `OverlayView` is configured with a `frame(minHeight:maxHeight:)` modifier: it starts at `overlayInputMinHeight` and expands up to 320 pt as content grows, after which the editor scrolls internally. For this to work, the `NSPanel` itself must grow and shrink in response to the SwiftUI view's preferred content size.
+The flourish overlay must resize dynamically as the user types. The `TextEditor` inside `OverlayView` is configured with a `frame(minHeight:maxHeight:)` modifier: it starts at `overlayInputMinHeight` and expands up to 320 pt as content grows, after which the editor scrolls internally. For this to work, the `NSPanel` itself must grow and shrink in response to the SwiftUI view's preferred content size.
 
 Under the previous `NSHostingView` + 4-edge constraint approach:
 
@@ -49,7 +49,7 @@ The first-open size is obtained by calling `hostingController.sizeThatFits(in: l
 - The `OverlayPanel` grows from `overlayInputMinHeight` up to 320 pt as the user types, then holds at 320 pt while the `TextEditor` scrolls internally. ✓
 - First-open centering is computed from the actual SwiftUI layout size, not an approximation. ✓
 - No manual `setContentSize` or `invalidateIntrinsicContentSize` calls anywhere in the controller. ✓
-- `sizingOptions = .preferredContentSize` requires macOS 13+. Flourish already targets macOS 13+ so this is not a new constraint. ✓
+- `sizingOptions = .preferredContentSize` requires macOS 13+. flourish already targets macOS 13+ so this is not a new constraint. ✓
 - The `NSHostingView` + constraint code is removed entirely. The `OverlayWindowController` `init` is simpler. ✓
 - SwiftUI scroll indicators on the `TextEditor` are hidden (`.scrollIndicators(.hidden)`) to avoid visual noise during resize. ✓
 

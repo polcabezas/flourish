@@ -29,7 +29,7 @@ extension Color {
     }
 }
 
-// MARK: - Flourish SwiftUI Colors (Wispr Flow aesthetic — warm neutrals, forest green)
+// MARK: - flourish SwiftUI Colors (Wispr Flow aesthetic — warm neutrals, forest green)
 
 extension Color {
     /// Main background: warm off-white
@@ -66,7 +66,7 @@ extension Color {
     static let flourishButtonLabel = Color(hex: "#FFFFFF")
 }
 
-// MARK: - Flourish AppKit Colors
+// MARK: - flourish AppKit Colors
 
 extension NSColor {
     static let flourishSurface        = NSColor(hex: "#F8F7F4")

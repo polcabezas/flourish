@@ -77,10 +77,10 @@ final class PasteService {
         let alert = NSAlert()
         alert.messageText = "Accessibility Access Required"
         alert.informativeText = """
-            Flourish needs accessibility access to paste improved prompts into other apps.
+            flourish needs accessibility access to paste improved prompts into other apps.
 
             Open System Settings → Privacy & Security → Accessibility, then make sure \
-            Flourish is enabled. If it's already listed, try toggling it off and back on.
+            flourish is enabled. If it's already listed, try toggling it off and back on.
             """
         alert.alertStyle = .warning
         alert.addButton(withTitle: "Open System Settings")

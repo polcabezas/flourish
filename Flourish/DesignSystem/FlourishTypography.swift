@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Flourish Typography
+// MARK: - flourish Typography
 // SF Pro throughout. Weights kept minimal: regular everywhere, medium for buttons/headings.
 
 extension Font {

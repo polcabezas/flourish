@@ -20,12 +20,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Set up menu bar
         MenuBarManager.shared.setup()
 
-        // Proactively request accessibility at launch so the user can grant it
-        // before attempting a paste, avoiding mid-flow interruptions.
-        if !PasteService.shared.checkAccessibilityPermission() {
-            PasteService.shared.requestAccessibilityPermission()
-        }
-
         // Register default hotkey (Ctrl+Space) on first launch
         if KeyboardShortcuts.getShortcut(for: .openOverlay) == nil {
             KeyboardShortcuts.setShortcut(
@@ -48,10 +42,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // User-created profiles (isBuiltin == false) are preserved unchanged.
         let userProfiles = Defaults[.profiles].filter { !$0.isBuiltin }
         Defaults[.profiles] = GuidelineProfile.builtins + userProfiles
+
+        // Start observing Supabase auth state (handles session restore + OAuth callbacks)
+        AuthService.shared.startObservingAuthState()
+
+        // If not authenticated on launch, show the sign-in panel immediately
+        if AuthService.shared.currentUser == nil {
+            SignInWindowController.shared.show()
+        }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        MenuBarManager.shared.openMainWindow()
+        if AuthService.shared.currentUser != nil {
+            MenuBarManager.shared.openMainWindow()
+        } else {
+            SignInWindowController.shared.show()
+        }
         return false
+    }
+
+    // Handle OAuth deep-link callbacks: flourish://auth/callback?...
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard let url = urls.first else { return }
+        Task { await AuthService.shared.handleAuthCallback(url: url) }
     }
 }

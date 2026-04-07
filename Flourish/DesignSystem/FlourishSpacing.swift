@@ -1,6 +1,6 @@
 import CoreGraphics
 
-// MARK: - Flourish Spacing
+// MARK: - flourish Spacing
 // Base unit: 4pt. All values are multiples of 4.
 
 enum FS {
@@ -34,8 +34,8 @@ enum FS {
     static let loaderCornerRadius: CGFloat = 20  // pill shape
 
     // Main window
-    static let mainWindowWidth:  CGFloat = 1060
-    static let mainWindowHeight: CGFloat = 700
+    static let mainWindowWidth:  CGFloat = 1160
+    static let mainWindowHeight: CGFloat = 780
     static let heroCardHeight:   CGFloat = 160
 
     // Sidebar

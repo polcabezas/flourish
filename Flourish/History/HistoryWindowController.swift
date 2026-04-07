@@ -16,7 +16,7 @@ final class HistoryWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "Flourish History"
+        window.title = "flourish History"
         window.titlebarAppearsTransparent = false
         window.isReleasedWhenClosed = false
         window.center()

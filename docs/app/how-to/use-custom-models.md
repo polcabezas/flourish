@@ -1,6 +1,6 @@
 # Change the Active Model
 
-How to change which LLM model Flourish uses. This is a founder/developer operation performed via the Cloudflare Worker — there is no model selector in the app UI.
+How to change which LLM model flourish uses. This is a founder/developer operation performed via the Cloudflare Worker — there is no model selector in the app UI.
 
 ---
 

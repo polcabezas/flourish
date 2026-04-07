@@ -9,7 +9,7 @@ import SwiftUI
 
 // MARK: - Shape (Canvas-based, stroke rendering)
 
-struct FlourishFShape: View {
+struct flourishFShape: View {
     var color: Color = .flourishAccent
 
     var body: some View {
@@ -49,26 +49,26 @@ struct FlourishFShape: View {
 
 // MARK: - Symbol View (scalable, single colour)
 
-struct FlourishLogoSymbol: View {
+struct flourishLogoSymbol: View {
     var size:  CGFloat = 32
     var color: Color   = .flourishAccent
 
     var body: some View {
-        FlourishFShape(color: color)
+        flourishFShape(color: color)
             .frame(width: size * (110.0 / 181.0), height: size)
     }
 }
 
 // MARK: - Full Logotype (symbol + wordmark)
 
-struct FlourishLogoView: View {
+struct flourishLogoView: View {
     var size:  CGFloat = 32
     var color: Color   = .flourishAccent
 
     var body: some View {
         HStack(spacing: size * 0.28) {
-            FlourishLogoSymbol(size: size, color: color)
-            Text("Flourish")
+            flourishLogoSymbol(size: size, color: color)
+            Text("flourish")
                 .font(.system(size: size * 0.55, weight: .semibold, design: .default))
                 .foregroundColor(color)
                 .tracking(-0.3)
@@ -78,7 +78,7 @@ struct FlourishLogoView: View {
 
 // MARK: - Full Wordmark (all 8 letters as stroked paths, matches logo_horizontal_transparent.svg)
 
-struct FlourishWordmarkView: View {
+struct flourishWordmarkView: View {
     var height: CGFloat = 20
     var color:  Color   = .flourishAccent
 
@@ -206,12 +206,12 @@ struct FlourishWordmarkView: View {
 
 #Preview {
     VStack(spacing: 24) {
-        FlourishLogoView(size: 40)
-        FlourishLogoView(size: 28, color: .white)
+        flourishLogoView(size: 40)
+        flourishLogoView(size: 28, color: .white)
             .padding(16)
             .background(Color(hex: "#1E2C1A"))
             .cornerRadius(14)
-        FlourishLogoSymbol(size: 20)
+        flourishLogoSymbol(size: 20)
     }
     .padding(32)
 }

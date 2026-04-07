@@ -1,4 +1,4 @@
-# Navigation Map — Flourish App
+# Navigation Map — flourish App
 
 ## Entry Points by Persona
 
@@ -32,6 +32,13 @@
 2. [Deploy or Update the Worker](how-to/deploy-worker.md)
 3. [Configure the LLM Provider and Model](how-to/configure-providers.md)
 4. [Supported Models Reference](reference/supported-models.md)
+
+### Founder (managing billing and subscriptions)
+1. [ADR-026: Stripe Billing via Worker](adr/026-stripe-billing-via-worker.md)
+2. [How to Manage Your Account](how-to/manage-account.md) — user-facing billing flows
+3. [ADR-025: Cloudflare D1 Usage Tracking](adr/025-cloudflare-d1-usage-tracking.md)
+4. [ADR-031: Event-Driven Usage Refresh in AccountViewModel](adr/031-account-usage-realtime-refresh.md)
+5. [Deploy or Update the Worker](how-to/deploy-worker.md)
 
 ### Designer (working on UI)
 1. [Design System](reference/design-system.md)
@@ -81,4 +88,12 @@ how-to/deploy-worker
   ├── → adr/015-cloudflare-worker-proxy
   ├── → reference/build-configuration
   └── → platform/security
+
+how-to/manage-account
+  ├── → adr/023-supabase-auth-strategy
+  ├── → adr/024-auth-gated-ui
+  ├── → adr/025-cloudflare-d1-usage-tracking
+  ├── → adr/026-stripe-billing-via-worker
+  ├── → adr/031-account-usage-realtime-refresh
+  └── → reference/data-models
 ```

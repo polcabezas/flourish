@@ -1,12 +1,12 @@
 # Add Support for a New LLM Provider
 
-How to extend the Cloudflare Worker proxy to route to a new LLM provider, and update `FlourishProxyService` if the new provider requires a non-standard request format.
+How to extend the Cloudflare Worker proxy to route to a new LLM provider, and update `flourishProxyService` if the new provider requires a non-standard request format.
 
 ---
 
 ## Overview
 
-With the proxy architecture (ADR-015), adding a new provider is primarily a Worker-side change. The app itself (`FlourishProxyService`) sends a fixed request format to the Worker and receives a fixed response format — it does not know which provider the Worker talks to.
+With the proxy architecture (ADR-015), adding a new provider is primarily a Worker-side change. The app itself (`flourishProxyService`) sends a fixed request format to the Worker and receives a fixed response format — it does not know which provider the Worker talks to.
 
 Most additions require no app changes at all.
 
@@ -72,7 +72,7 @@ wrangler deploy
 
 The app needs updating only if the new provider's response format cannot be normalized into the existing `{ text, tokensIn, tokensOut, model }` Worker response shape. In practice this is rare — the Worker handles normalization.
 
-If you do need to change the Worker response shape, update `FlourishProxyService.swift` to decode the new fields, and update `LLMResponse` in `Core/Services/LLMService.swift` accordingly.
+If you do need to change the Worker response shape, update `flourishProxyService.swift` to decode the new fields, and update `LLMResponse` in `Core/Services/LLMService.swift` accordingly.
 
 ---
 

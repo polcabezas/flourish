@@ -13,7 +13,7 @@ Use the `Defaults` Swift package (sindresorhus/Defaults) for all UserDefaults ac
 
 ## Context
 
-Flourish has approximately 30 settings keys stored in UserDefaults (provider toggles, model selections, profiles, statistics, preferences). Managing these with raw UserDefaults has several pain points:
+flourish has approximately 30 settings keys stored in UserDefaults (provider toggles, model selections, profiles, statistics, preferences). Managing these with raw UserDefaults has several pain points:
 - No type safety: `UserDefaults.standard.string(forKey:)` returns `String?` and requires a cast for every non-string type.
 - No default values declared at the key definition site — they must be specified at every call site, or registered via `UserDefaults.standard.register(defaults:)`.
 - SwiftUI binding requires custom `@AppStorage` wrappers for non-primitive types.

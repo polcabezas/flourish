@@ -19,7 +19,7 @@ Different AI assistants respond best to different prompt structures:
 - **Gemini** works best with a `<context>` XML wrapper, with the question placed last.
 - **Perplexity** drives a live web search — the prompt should look like a keyword-rich expert query, not a conversational instruction.
 
-Users typically know which assistant they will paste into. Providing platform-aware output from Flourish eliminates a manual reformatting step and produces better results from the target model.
+Users typically know which assistant they will paste into. Providing platform-aware output from flourish eliminates a manual reformatting step and produces better results from the target model.
 
 ---
 

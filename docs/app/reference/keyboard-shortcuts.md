@@ -1,6 +1,6 @@
 # Keyboard Shortcuts Reference
 
-All keyboard bindings active in the Flourish overlay and main window.
+All keyboard bindings active in the flourish overlay and main window.
 
 ---
 
@@ -8,7 +8,7 @@ All keyboard bindings active in the Flourish overlay and main window.
 
 | Shortcut | Action | Configurable |
 |----------|--------|--------------|
-| **Ctrl+Space** (default) | Open / close the Flourish overlay | Yes — Settings → Keyboard Shortcut |
+| **Ctrl+Space** (default) | Open / close the flourish overlay | Yes — Settings → Keyboard Shortcut |
 
 The global shortcut is managed by the `KeyboardShortcuts` package. Changing it in Settings takes effect immediately.
 
@@ -44,7 +44,7 @@ Standard macOS window keyboard conventions apply.
 | Shortcut | Action |
 |----------|--------|
 | **Cmd+W** | Close the main window |
-| **Cmd+Q** | Quit Flourish |
+| **Cmd+Q** | Quit flourish |
 | **Cmd+,** | Open Settings (if wired to the Settings scene) |
 
 Navigation within the main window is click-based (sidebar items). No keyboard-only navigation is implemented beyond standard macOS accessibility.

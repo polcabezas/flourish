@@ -7,7 +7,7 @@
 
 ## Decision
 
-Add a `ProfileGeneratorService` that calls the Flourish proxy LLM with a meta-prompt to generate a custom `GuidelineProfile` (name + `systemPrompt`) from a plain-language description of the user's role and tasks. The generated profile is presented for review and editing before saving.
+Add a `ProfileGeneratorService` that calls the flourish proxy LLM with a meta-prompt to generate a custom `GuidelineProfile` (name + `systemPrompt`) from a plain-language description of the user's role and tasks. The generated profile is presented for review and editing before saving.
 
 ---
 
@@ -31,7 +31,7 @@ Rejected: requires worker redeployment, adds a new route, and creates an asymmet
 
 ### C. Reuse `/improve` with a meta-prompt (chosen)
 
-`ProfileGeneratorService` calls `FlourishProxyService.improvePrompt(_:systemPrompt:model:)` with:
+`ProfileGeneratorService` calls `flourishProxyService.improvePrompt(_:systemPrompt:model:)` with:
 - `text` = the user's role/task description  
 - `systemPrompt` = a hardcoded meta-prompt instructing the LLM to produce `{ "name": "...", "systemPrompt": "..." }` JSON
 

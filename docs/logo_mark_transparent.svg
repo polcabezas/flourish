@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="12 -7 110 181" role="img" aria-label="Flourish">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="12 -7 110 181" role="img" aria-label="flourish">
   <!--
-    Flourish mark — just the "f", transparent background.
+    flourish mark — just the "f", transparent background.
     Same paths and coordinates as logo_horizontal; viewBox cropped to the f only.
     Visual f bounds: x≈[30,104] y≈[11,156] — 18px padding each side.
     Color: #5B7B4E (flourishAccent)

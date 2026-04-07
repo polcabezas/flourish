@@ -11,9 +11,9 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Flourish</string>
+	<string>flourish</string>
 	<key>CFBundleDisplayName</key>
-	<string>Flourish</string>
+	<string>flourish</string>
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
@@ -27,14 +27,27 @@
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSAccessibilityUsageDescription</key>
-	<string>Flourish needs accessibility access to paste improved prompts into other apps.</string>
+	<string>flourish needs accessibility access to paste improved prompts into other apps.</string>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>Flourish uses Apple Events to interact with other applications.</string>
+	<string>flourish uses Apple Events to interact with other applications.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Personal use</string>
-	<key>FlourishProxyURL</key>
-	<string>$(FLOURISH_PROXY_URL)</string>
-	<key>FlourishProxyToken</key>
-	<string>$(FLOURISH_PROXY_TOKEN)</string>
+	<key>flourishProxyURL</key>
+	<string>$(flourish_PROXY_URL)</string>
+	<key>SupabaseURL</key>
+	<string>$(SUPABASE_URL)</string>
+	<key>SupabaseAnonKey</key>
+	<string>$(SUPABASE_ANON_KEY)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>flourish</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>com.personal.flourish</string>
+		</dict>
+	</array>
 </dict>
 </plist>

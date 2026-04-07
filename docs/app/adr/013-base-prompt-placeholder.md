@@ -13,7 +13,7 @@ The base system prompt template uses a `{guidelines}` placeholder string. `BaseP
 
 ## Context
 
-Flourish needs to send a system prompt to the LLM that:
+flourish needs to send a system prompt to the LLM that:
 1. Establishes the base behavior (act as a prompt engineer, return only the improved prompt, etc.)
 2. Incorporates the selected guideline profile's specific instructions.
 

@@ -1,8 +1,8 @@
 # App Settings Reference
 
-All `Defaults.Key` definitions used by Flourish, their types, default values, and purpose.
+All `Defaults.Key` definitions used by flourish, their types, default values, and purpose.
 
-Defined in `Flourish/Core/AppSettings.swift`. Accessed via the `Defaults` package's `@Default` property wrapper in views, or `Defaults[.keyName]` in services.
+Defined in `flourish/Core/AppSettings.swift`. Accessed via the `Defaults` package's `@Default` property wrapper in views, or `Defaults[.keyName]` in services.
 
 **Note:** All provider-related settings keys (`openRouterEnabled`, `openRouterModel`, `groqEnabled`, `groqModel`, `activeProvider`, etc.) were removed when the app moved to the Cloudflare Worker proxy architecture (ADR-015). Provider and model are now configured in `cloudflare/wrangler.toml`, not in the app.
 
@@ -34,6 +34,14 @@ Defined in `Flourish/Core/AppSettings.swift`. Accessed via the `Defaults` packag
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `basePromptTemplate` | `String` | `""` | Custom system prompt template. Must contain `{guidelines}` for profile injection. Empty string means use the built-in default template from `BasePrompt.swift`. **Not exposed in the Settings UI** (removed in ADR-021). |
+
+---
+
+## Account
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `lastKnownSubscription` | `String` | `"free"` | Cached plan tier from the last successful `GET /account/usage` response. Used to render the plan badge in `AccountView` without waiting for a network response. Updated every time `AccountViewModel` fetches fresh usage data. Possible values: `"free"`, `"pro"` |
 
 ---
 
@@ -80,7 +88,8 @@ Defaults[.totalRequestCount] += 1
 ## Related
 
 - [Data Persistence Strategy](../explanation/data-persistence-strategy.md)
-- [Data Models Reference](data-models.md) — `GuidelineProfile` definition
+- [Data Models Reference](data-models.md) — `GuidelineProfile`, `UsageInfo` definitions
 - [ADR-004: Defaults Package](../adr/004-defaults-package.md)
 - [ADR-015: Cloudflare Worker Proxy](../adr/015-cloudflare-worker-proxy.md) — explains removal of provider keys
 - [ADR-021: Remove base prompt editor](../adr/021-remove-base-prompt-editor.md) — explains why `basePromptTemplate` is no longer UI-exposed
+- [ADR-023: Supabase Auth Strategy](../adr/023-supabase-auth-strategy.md) — explains `lastKnownSubscription` caching rationale

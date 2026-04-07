@@ -1,6 +1,6 @@
 # Data Models Reference
 
-All Swift model types in `Flourish/Core/Models/`.
+All Swift model types in `flourish/Core/Models/`.
 
 ---
 
@@ -204,9 +204,73 @@ struct LLMResponse {
 
 ---
 
+## AuthUser
+
+**File:** `Core/Services/AuthService.swift`
+
+A lightweight representation of the signed-in user, derived from the Supabase `Session`. Not a persisted model — reconstructed from the live `authStateChanges` session on every auth state transition.
+
+```swift
+struct AuthUser {
+    let id: String      // Supabase user UUID (used as user_id in D1)
+    let email: String   // User's email address
+}
+```
+
+`AuthService.shared.currentUser` exposes the current `AuthUser?`. `nil` when no session exists.
+
+---
+
+## UsageInfo
+
+**File:** `Main/AccountViewModel.swift`
+
+The decoded response from `GET /account/usage` on the Cloudflare Worker.
+
+```swift
+struct UsageInfo: Decodable {
+    let subscription: String    // "free" or "pro"
+    let requestsThisMonth: Int  // Counter since last reset
+    let limit: Int              // 30 for free, 2000 for pro
+    let resetAt: Date           // Start of next billing cycle (ISO-8601)
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `subscription` | Plan tier as a raw string from D1. `AccountView` maps to a display label ("Free" / "Pro") |
+| `requestsThisMonth` | Requests made since `resetAt`. Incremented by the Worker on each successful `/improve` call |
+| `limit` | Monthly request cap for the current plan |
+| `resetAt` | When `requestsThisMonth` will be reset to 0. Lazy — reset only occurs when a new request arrives after this date |
+
+---
+
+## WorkerLimitError
+
+**File:** `Core/Services/flourishProxyService.swift` (part of `LLMError`)
+
+Represents the 429 response returned by the Worker when a user exceeds their monthly request limit.
+
+```swift
+// HTTP 429 response body from Worker:
+// { "error": "monthly_limit_reached" }
+
+// Mapped to:
+enum LLMError: LocalizedError {
+    // ... existing cases ...
+    case monthlyLimitReached
+}
+```
+
+`flourishProxyService` inspects the HTTP status code and JSON body. When `status == 429` and `error == "monthly_limit_reached"`, it throws `LLMError.monthlyLimitReached`. The overlay displays a user-facing message directing the user to the Account section to upgrade.
+
+---
+
 ## Related
 
 - [LLM Service API Reference](llm-service-api.md)
 - [Database Schema Reference](database-schema.md)
 - [App Settings Reference](app-settings.md)
 - [Supported Models Reference](supported-models.md)
+- [ADR-023: Supabase Auth Strategy](../adr/023-supabase-auth-strategy.md)
+- [ADR-025: Cloudflare D1 Usage Tracking](../adr/025-cloudflare-d1-usage-tracking.md)

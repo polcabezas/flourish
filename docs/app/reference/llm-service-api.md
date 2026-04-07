@@ -1,6 +1,6 @@
 # LLM Service API Reference
 
-The protocol, implementation, request/response shapes, and error types for Flourish's LLM integration.
+The protocol, implementation, request/response shapes, and error types for flourish's LLM integration.
 
 ---
 
@@ -59,11 +59,11 @@ enum LLMError: LocalizedError {
 
 | Case | User-Facing Message | When Thrown |
 |------|---------------------|-------------|
-| `missingConfiguration` | "Proxy not configured. Contact support." | `FlourishProxyURL` or `FlourishProxyToken` missing from `Info.plist` |
+| `missingConfiguration` | "Proxy not configured. Contact support." | `flourishProxyURL` or `flourishProxyToken` missing from `Info.plist` |
 | `emptyInput` | "Prompt is empty." | Input text is blank or whitespace-only |
 | `unauthorized` | "Proxy authentication failed. Rebuild the app with a valid token." | Worker returned HTTP 401 |
 | `badRequest(msg)` | The API error message forwarded from provider | HTTP 400 from provider |
-| `billingError` | "Billing issue. Contact the Flourish team." | HTTP 402 from provider |
+| `billingError` | "Billing issue. Contact the flourish team." | HTTP 402 from provider |
 | `rateLimited` | "Rate limit reached. Wait a moment and try again." | HTTP 429 |
 | `serverError(code)` | "Server error ({code}). The service may be temporarily unavailable." | HTTP 5xx or unexpected status |
 | `invalidResponse` | "Unexpected response format from the proxy." | JSON decode failure or non-HTTP response |
@@ -71,9 +71,9 @@ enum LLMError: LocalizedError {
 
 ---
 
-## `FlourishProxyService`
+## `flourishProxyService`
 
-**File:** `Core/Services/FlourishProxyService.swift`
+**File:** `Core/Services/flourishProxyService.swift`
 
 The sole concrete implementation of `LLMService`. Reads proxy configuration from `Bundle.main.infoDictionary` at call time.
 
@@ -81,20 +81,20 @@ The sole concrete implementation of `LLMService`. Reads proxy configuration from
 
 | Key | Source | Description |
 |-----|--------|-------------|
-| `FlourishProxyURL` | `FLOURISH_PROXY_URL` in `Secrets.xcconfig` | Hostname only (e.g., `flourish-proxy.yoursubdomain.workers.dev`). `https://` is prepended in code |
-| `FlourishProxyToken` | `FLOURISH_PROXY_TOKEN` in `Secrets.xcconfig` | Bearer token used in the `Authorization` header |
+| `flourishProxyURL` | `flourish_PROXY_URL` in `Secrets.xcconfig` | Hostname only (e.g., `flourish-proxy.yoursubdomain.workers.dev`). `https://` is prepended in code |
+| `flourishProxyToken` | `flourish_PROXY_TOKEN` in `Secrets.xcconfig` | Bearer token used in the `Authorization` header |
 
 ### Endpoint
 
 ```
-POST https://<FlourishProxyURL>/improve
+POST https://<flourishProxyURL>/improve
 ```
 
 ### Request Headers
 
 | Header | Value |
 |--------|-------|
-| `Authorization` | `Bearer <FlourishProxyToken>` |
+| `Authorization` | `Bearer <flourishProxyToken>` |
 | `Content-Type` | `application/json` |
 
 Timeout: **60 seconds**

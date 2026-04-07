@@ -20,7 +20,7 @@ final class OpenRouterService: LLMService {
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json",    forHTTPHeaderField: "Content-Type")
         request.setValue("com.personal.flourish", forHTTPHeaderField: "HTTP-Referer")
-        request.setValue("Flourish",            forHTTPHeaderField: "X-Title")
+        request.setValue("flourish",            forHTTPHeaderField: "X-Title")
         request.timeoutInterval = 60
 
         let body: [String: Any] = [

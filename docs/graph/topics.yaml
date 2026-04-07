@@ -1,5 +1,5 @@
 ---
-# Flourish Documentation Topics
+# flourish Documentation Topics
 # Groups documents by topic/concern for discovery.
 
 topics:
@@ -56,6 +56,7 @@ topics:
       - howto-build-distribute
       - adr-002
       - adr-008
+      - adr-022
 
   - name: Security
     description: API key storage, Accessibility permission, clipboard handling
@@ -79,6 +80,15 @@ topics:
     description: Colors, typography, spacing, layout constants
     docs:
       - ref-design-system
+
+  - name: Auth & Billing
+    description: User authentication, usage tracking, and subscription management
+    docs:
+      - adr-023
+      - adr-024
+      - adr-025
+      - adr-026
+      - howto-manage-account
 
   - name: Getting Started
     description: Onboarding tutorials and first steps

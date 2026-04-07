@@ -166,7 +166,7 @@ func savePNG(_ image: NSImage, to path: String) {
 
 // MARK: - Main
 
-let outDir = "Flourish/Assets.xcassets/AppIcon.appiconset"
+let outDir = "flourish/Assets.xcassets/AppIcon.appiconset"
 
 let specs: [(Int, String)] = [
     (16,   "icon_16x16.png"),
@@ -226,7 +226,7 @@ func drawMenuBarIcon(size s: CGFloat) -> NSImage {
 
 // MARK: - Main
 
-print("Generating Flourish icons (floral F)…")
+print("Generating flourish icons (floral F)…")
 for (px, name) in specs {
     let img = drawIcon(size: CGFloat(px))
     savePNG(img, to: "\(outDir)/\(name)")
@@ -234,7 +234,7 @@ for (px, name) in specs {
 print("Done — \(specs.count) files written to \(outDir)/")
 
 // Menu bar icons
-let mbDir = "Flourish/Assets.xcassets/MenuBarIcon.imageset"
+let mbDir = "flourish/Assets.xcassets/MenuBarIcon.imageset"
 print("\nGenerating menu bar icons…")
 let mbSpecs: [(Int, String)] = [
     (18, "menubar_icon.png"),

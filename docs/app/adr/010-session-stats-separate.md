@@ -13,7 +13,7 @@ Maintain two separate statistics systems: a session-only `SessionStatsTracker` (
 
 ## Context
 
-The Home screen's header area shows statistics about Flourish usage. Two types of stats are useful:
+The Home screen's header area shows statistics about flourish usage. Two types of stats are useful:
 - **Session stats**: how many improvements were made in the current launch. Useful for seeing "what I did today."
 - **All-time stats**: cumulative totals since first use. Useful for understanding overall usage and cost.
 

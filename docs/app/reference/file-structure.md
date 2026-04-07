@@ -1,6 +1,6 @@
 # File Structure Reference
 
-Every source file in the Flourish project with its responsibility and key exports.
+Every source file in the flourish project with its responsibility and key exports.
 
 ---
 
@@ -20,27 +20,27 @@ Every source file in the Flourish project with its responsibility and key export
 
 | File | Purpose |
 |------|---------|
-| `cloudflare/worker.js` | Cloudflare Worker script. Validates `Authorization: Bearer` token, reads `ACTIVE_PROVIDER` and `ACTIVE_MODEL` from environment, forwards requests to the configured LLM provider API using keys from Cloudflare secrets |
-| `cloudflare/wrangler.toml` | Wrangler deploy configuration. `ACTIVE_PROVIDER` and `ACTIVE_MODEL` are set here as plain vars. Provider API keys and `FLOURISH_PROXY_TOKEN` are stored as Cloudflare secrets (not in this file) |
+| `cloudflare/worker.js` | Full rewrite. Routes: `POST /improve` (HS256 JWT verification via Web Crypto, D1 limit check, LLM proxy), `POST /account/create` (idempotent D1 row creation), `GET /account/usage` (plan + counter + reset date), `POST /billing/checkout` (lazy Stripe customer creation + Checkout Session), `GET /billing/portal` (Stripe Billing Portal), `POST /stripe/webhook` (signature verified via Web Crypto, syncs subscription to D1) |
+| `cloudflare/wrangler.toml` | Wrangler deploy configuration. D1 binding: `flourish-users`. Cloudflare secrets (not in file): `SUPABASE_JWT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_MONTHLY_PRICE_ID`, `STRIPE_YEARLY_PRICE_ID`, provider API keys |
 
 ---
 
-## `Flourish/` (Main Source Target)
+## `flourish/` (Main Source Target)
 
 ### Entry Points
 
 | File | Key Exports |
 |------|-------------|
-| `FlourishApp.swift` | `@main struct FlourishApp: App`. Declares `MenuBarExtra` or `WindowGroup` scenes. Wires `AppDelegate` |
-| `AppDelegate.swift` | `class AppDelegate: NSObject, NSApplicationDelegate`. `applicationDidFinishLaunching`: installs `KeyboardShortcuts` binding for `.openOverlay`, requests Accessibility permission, sets initial dock visibility, calls `MenuBarManager.shared.setup()` |
-| `Info.plist` | Bundle ID: `com.personal.flourish`. `LSUIElement = YES` (menu bar agent). `NSAccessibilityUsageDescription`. `NSAppleEventsUsageDescription`. `FlourishProxyURL` and `FlourishProxyToken` (injected from `Secrets.xcconfig` via build settings). Version `1.0.0`, build `1` |
-| `Flourish.entitlements` | Minimal entitlements. `com.apple.security.app-sandbox = false`. No network entitlements needed (URLSession is unrestricted without sandbox) |
+| `flourishApp.swift` | `@main struct flourishApp: App`. Declares `MenuBarExtra` or `WindowGroup` scenes. Wires `AppDelegate` |
+| `AppDelegate.swift` | `class AppDelegate: NSObject, NSApplicationDelegate`. `applicationDidFinishLaunching`: starts `AuthService.shared.startObservingAuthState()`, installs `KeyboardShortcuts` binding for `.openOverlay`, handles `flourish://auth/callback` deep link, defers Accessibility permission to post-login, sets initial dock visibility, calls `MenuBarManager.shared.setup()` |
+| `Info.plist` | Bundle ID: `com.personal.flourish`. `LSUIElement = YES` (menu bar agent). `NSAccessibilityUsageDescription`. `NSAppleEventsUsageDescription`. `flourishProxyURL` (injected from `Secrets.xcconfig`). `supabaseURL` and `supabaseAnonKey` (injected from `Secrets.xcconfig`). Custom URL scheme `flourish` (for OAuth callback). Version `1.1.0`, build `2` |
+| `flourish.entitlements` | Minimal entitlements. `com.apple.security.app-sandbox = false`. No network entitlements needed (URLSession is unrestricted without sandbox) |
 
 ### `Config/`
 
 | File | Key Exports |
 |------|-------------|
-| `Config/Secrets.xcconfig` | Gitignored. Provides `FLOURISH_PROXY_URL` (hostname only) and `FLOURISH_PROXY_TOKEN` as build settings injected into `Info.plist` |
+| `Config/Secrets.xcconfig` | Gitignored. Provides `flourish_PROXY_URL` (hostname only) and `flourish_PROXY_TOKEN` as build settings injected into `Info.plist` |
 | `Config/Secrets.xcconfig.example` | Committed template. Safe to commit — contains placeholder values only |
 
 ---
@@ -49,10 +49,10 @@ Every source file in the Flourish project with its responsibility and key export
 
 | File | Key Exports |
 |------|-------------|
-| `FlourishColors.swift` | `Color` extensions: `.surface`, `.sidebar`, `.accent`, `.button`, `.textPrimary`, `.textSecondary`. Hex initializer `Color(hex:)` |
-| `FlourishTypography.swift` | `Font` extensions: `.title`, `.body`, `.button`, `.meta`, `.label` |
-| `FlourishSpacing.swift` | `enum FS` — spacing constants (`xs`…`xxl`), radii (`radiusSm`…`radiusLg`), layout dimensions (`overlayWidth`, `mainWidth`, `mainHeight`, `sidebarWidth`, `loaderWidth`, `loaderHeight`, `loaderDotSize`) |
-| `FlourishLogoView.swift` | `struct FlourishLogoView: View` — renders the custom 'f' logo shape as a SwiftUI `Path` on a 65×100 canvas |
+| `flourishColors.swift` | `Color` extensions: `.surface`, `.sidebar`, `.accent`, `.button`, `.textPrimary`, `.textSecondary`. Hex initializer `Color(hex:)` |
+| `flourishTypography.swift` | `Font` extensions: `.title`, `.body`, `.button`, `.meta`, `.label` |
+| `flourishSpacing.swift` | `enum FS` — spacing constants (`xs`…`xxl`), radii (`radiusSm`…`radiusLg`), layout dimensions (`overlayWidth`, `mainWidth`, `mainHeight`, `sidebarWidth`, `loaderWidth`, `loaderHeight`, `loaderDotSize`) |
+| `flourishLogoView.swift` | `struct flourishLogoView: View` — renders the custom 'f' logo shape as a SwiftUI `Path` on a 65×100 canvas |
 
 ---
 
@@ -67,15 +67,25 @@ Every source file in the Flourish project with its responsibility and key export
 
 ---
 
+### `Auth/`
+
+| File | Key Exports |
+|------|-------------|
+| `Auth/SignInWindowController.swift` | `@MainActor final class SignInWindowController: NSWindowController`. Singleton (`static let shared`). Owns a private `NSPanel` (320pt wide). `show()` centers on screen; `hide()` calls `orderOut(_:)`. Hosts `SignInView` |
+| `Auth/SignInView.swift` | `struct SignInView: View`. Flourish logo, email `TextField`, password `SecureField`, sign-in/sign-up toggle, Google OAuth button using `GoogleLogo` image asset. Calls `AuthService.shared` methods on submit |
+
+---
+
 ### `Core/Services/`
 
 | File | Key Exports |
 |------|-------------|
-| `LLMService.swift` | `protocol LLMService`. `struct LLMResponse`. `enum LLMError: LocalizedError` |
-| `FlourishProxyService.swift` | `final class FlourishProxyService: LLMService`. Reads `FlourishProxyURL` and `FlourishProxyToken` from `Bundle.main.infoDictionary`. POSTs to `https://<FlourishProxyURL>/improve` |
+| `AuthService.swift` | `@MainActor final class AuthService: ObservableObject`. Singleton. Wraps `SupabaseClient` (URL + anonKey read from `Info.plist`; stored without `https://` in xcconfig). `startObservingAuthState()` begins the `authStateChanges` async stream. `currentUser: AuthUser?`. Methods: `signIn(email:password:)`, `signUp(email:password:)`, `signInWithGoogle()`, `handleAuthCallback(url:)`, `signOut()`, `currentAccessToken() async -> String?`, `ensureAccountExists()`. Keychain service: `"flourish"` |
+| `LLMService.swift` | `protocol LLMService`. `struct LLMResponse`. `enum LLMError: LocalizedError` (includes `monthlyLimitReached` case) |
+| `flourishProxyService.swift` | `final class flourishProxyService: LLMService`. Reads `flourishProxyURL` from `Bundle.main.infoDictionary`. Awaits `AuthService.shared.currentAccessToken()` for JWT Bearer token. POSTs to `https://<flourishProxyURL>/improve`. Handles HTTP 429 `monthly_limit_reached` → `LLMError.monthlyLimitReached` |
 | `BasePrompt.swift` | `enum BasePrompt { static func build(guidelines:targetPlatform:) -> String }`. Substitutes `{guidelines}` placeholder; appends `TargetPlatform.formattingInstruction` when non-`nil` |
 | `HistoryStore.swift` | `final class HistoryStore`. Singleton. GRDB `DatabaseQueue`. Methods: `insert`, `fetchAll`, `delete`, `deleteAll`, `totalCount`. Max 500 entries. Posts `Notification.Name.historyDidChange` after every insert, delete, and deleteAll |
-| `ProfileGeneratorService.swift` | `final class ProfileGeneratorService`. Uses `FlourishProxyService` with a hardcoded meta-prompt to generate a `GuidelineProfile` from a plain-language role description. Method: `generate(from: String) async throws -> GuidelineProfile` |
+| `ProfileGeneratorService.swift` | `final class ProfileGeneratorService`. Uses `flourishProxyService` with a hardcoded meta-prompt to generate a `GuidelineProfile` from a plain-language role description. Method: `generate(from: String) async throws -> GuidelineProfile` |
 | `PasteService.swift` | `final class PasteService`. Singleton. `capturePreviousApp()`, `paste(text:)`. Internally: `NSPasteboard`, `NSWorkspace`, `CGEvent` (Cmd+V simulation) |
 | `SessionStatsTracker.swift` | `final class SessionStatsTracker: ObservableObject`. `@Published` session request count, tokens, cost. `record(_ response: LLMResponse)` |
 
@@ -93,7 +103,7 @@ Every source file in the Flourish project with its responsibility and key export
 
 | File | Key Exports |
 |------|-------------|
-| `MenuBarManager.swift` | `final class MenuBarManager`. Singleton. `setup()`: creates `NSStatusItem` with wand template image. Menu items: Open Flourish, Settings…, Quit Flourish. Left-click → `MainWindowController.shared.showWindow()` |
+| `MenuBarManager.swift` | `final class MenuBarManager`. Singleton. `setup()`: creates `NSStatusItem` with wand template image. Menu items: Open flourish, Settings…, Quit flourish. Left-click → `MainWindowController.shared.showWindow()` |
 
 ---
 
@@ -128,11 +138,13 @@ Every source file in the Flourish project with its responsibility and key export
 
 | File | Key Exports |
 |------|-------------|
-| `MainWindowController.swift` | `final class MainWindowController: NSWindowController`. Lazily instantiated by `MenuBarManager` on first open (not a static singleton). `showAndFocus()` centers the window via `center()` then calls `makeKeyAndOrderFront(_:)` |
-| `MainWindowView.swift` | `struct MainWindowView: View`. `NavigationSplitView` with sidebar items: Home, Profiles, Settings. Reads `@State var selection` |
+| `MainWindowController.swift` | `final class MainWindowController: NSWindowController`. Singleton (`static let shared`). `showAndFocus()` centers the window via `center()` then calls `makeKeyAndOrderFront(_:)` |
+| `MainWindowView.swift` | `struct MainWindowView: View`. `NavigationSplitView` with sidebar items: Home, Profiles, Settings, Account (`.account` section, `person.circle` icon). Reads `@State var selection` |
 | `HomeView.swift` | `struct HomeView: View`. Header with all-time stats badges. Hero card ("Open Overlay →" button). History timeline grouped by TODAY/YESTERDAY/EARLIER using `TwoColumnLayout`. Row-level delete and copy actions |
 | `ProfilesView.swift` | `struct ProfilesView: View`. List of all profiles. "Generate with AI" button → `GenerateProfileSheet` sheet. "New Profile" button → `ProfileEditSheet`. Edit (pencil) and delete (trash) actions per row |
 | `SettingsPanelView.swift` | `struct SettingsPanelView: View`. Single scrollable view with sections: Keyboard Shortcut (`KeyboardShortcuts.Recorder`), Base Prompt (`TextEditor` + reset), General (Launch at Login, Show Dock Icon, About) |
+| `AccountView.swift` | `struct AccountView: View`. Shown only when authenticated. Email address, plan badge, usage progress bar (requests used / limit), reset date, Sign Out button. Billing section: monthly/yearly `Picker` toggle, Upgrade / Manage Billing button |
+| `AccountViewModel.swift` | `@MainActor final class AccountViewModel: ObservableObject`. `@Published var usageInfo: UsageInfo?`. `fetchUsage()` calls `GET /account/usage`. `checkout(plan:)` calls `POST /billing/checkout` then `NSWorkspace.shared.open(url)`. `openPortal()` calls `GET /billing/portal` then `NSWorkspace.shared.open(url)` |
 
 ---
 
@@ -140,7 +152,7 @@ Every source file in the Flourish project with its responsibility and key export
 
 | File | Key Exports |
 |------|-------------|
-| `SettingsView.swift` | Compatibility wrapper for the `Settings` scene in `FlourishApp.swift` |
+| `SettingsView.swift` | Compatibility wrapper for the `Settings` scene in `flourishApp.swift` |
 | `Tabs/ProfileEditSheet.swift` | `struct ProfileEditSheet: View`. Modal sheet with Name `TextField` and System Prompt `TextEditor`. Save/Cancel buttons |
 | `Tabs/GenerateProfileSheet.swift` | `struct GenerateProfileSheet: View`. Two-stage modal: **DescribeStage** (user enters role/work description) → **ReviewStage** (edit generated name and system prompt before saving). Calls `ProfileGeneratorService.generate(from:)` |
 
@@ -169,9 +181,9 @@ Every source file in the Flourish project with its responsibility and key export
 
 | Path | Status |
 |------|--------|
-| `Flourish.xcodeproj/` | Generated by `make generate`, **not committed** |
+| `flourish.xcodeproj/` | Generated by `make generate`, **not committed** |
 | `build/` | Build artifacts and DerivedData, **not committed** |
-| `Flourish/Config/Secrets.xcconfig` | Proxy credentials, **not committed** — copy from `Secrets.xcconfig.example` |
+| `flourish/Config/Secrets.xcconfig` | Proxy credentials, **not committed** — copy from `Secrets.xcconfig.example` |
 
 ---
 

@@ -1,6 +1,6 @@
-# Getting Started with Flourish
+# Getting Started with flourish
 
-**Goal:** Build Flourish from source, run it for the first time, and successfully improve a prompt using the overlay.
+**Goal:** Build flourish from source, run it for the first time, and successfully improve a prompt using the overlay.
 
 **Time:** ~15 minutes
 
@@ -8,7 +8,7 @@
 - macOS 13.0 or later
 - Xcode 15 or later
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen) installed (`brew install xcodegen`)
-- `Flourish/Config/Secrets.xcconfig` with the proxy URL and token (obtain from the team)
+- `flourish/Config/Secrets.xcconfig` with the proxy URL and token (obtain from the team)
 
 ---
 
@@ -16,7 +16,7 @@
 
 ```bash
 git clone <repo-url>
-cd Flourish
+cd flourish
 ```
 
 ---
@@ -26,14 +26,14 @@ cd Flourish
 The app connects to a Cloudflare Worker proxy for LLM requests. The proxy URL and bearer token are stored in a gitignored config file:
 
 ```bash
-cp Flourish/Config/Secrets.xcconfig.example Flourish/Config/Secrets.xcconfig
+cp flourish/Config/Secrets.xcconfig.example flourish/Config/Secrets.xcconfig
 ```
 
-Open `Flourish/Config/Secrets.xcconfig` and fill in the values (get them from the team):
+Open `flourish/Config/Secrets.xcconfig` and fill in the values (get them from the team):
 
 ```
-FLOURISH_PROXY_URL   = flourish-proxy.yoursubdomain.workers.dev
-FLOURISH_PROXY_TOKEN = <proxy bearer token>
+flourish_PROXY_URL   = flourish-proxy.yoursubdomain.workers.dev
+flourish_PROXY_TOKEN = <proxy bearer token>
 ```
 
 The URL must be the hostname only — no `https://` prefix.
@@ -42,7 +42,7 @@ The URL must be the hostname only — no `https://` prefix.
 
 ## Step 3 — Generate the Xcode project
 
-Flourish uses XcodeGen instead of a committed `.xcodeproj`. The project is generated from `project.yml`:
+flourish uses XcodeGen instead of a committed `.xcodeproj`. The project is generated from `project.yml`:
 
 ```bash
 make generate
@@ -72,13 +72,13 @@ When the app launches:
 
 ---
 
-## Step 6 — Open Flourish's main window
+## Step 6 — Open flourish's main window
 
-Click the wand icon in the menu bar, or right-click and choose **Open Flourish**.
+Click the wand icon in the menu bar, or right-click and choose **Open flourish**.
 
 The main window opens with a sidebar: **Home**, **Profiles**, **Settings**.
 
-No API key setup is needed. Flourish connects to the team's LLM proxy automatically using the credentials embedded at build time.
+No API key setup is needed. flourish connects to the team's LLM proxy automatically using the credentials embedded at build time.
 
 ---
 
@@ -86,7 +86,7 @@ No API key setup is needed. Flourish connects to the team's LLM proxy automatica
 
 1. Click in any text field in any macOS app (e.g., Notes, a browser address bar, Xcode).
 2. Press **Ctrl+Space** (the default hotkey).
-3. A floating panel appears — this is the Flourish overlay.
+3. A floating panel appears — this is the flourish overlay.
 4. Type a rough prompt, e.g.: `write an email to my boss asking for a day off`
 5. Press **Return**.
 6. The 3-dot loader appears while the LLM processes your prompt.
@@ -97,7 +97,7 @@ No API key setup is needed. Flourish connects to the team's LLM proxy automatica
 ## What just happened?
 
 When you pressed Return:
-- Flourish captured the previously focused app before showing the overlay.
+- flourish captured the previously focused app before showing the overlay.
 - Your text was sent to the Cloudflare Worker proxy, which forwarded it to the configured LLM provider.
 - The response was written to your clipboard.
 - Your previous app was reactivated.

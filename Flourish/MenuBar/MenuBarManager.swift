@@ -3,12 +3,12 @@ import SwiftUI
 
 // MARK: - Menu Bar Manager
 
+@MainActor
 final class MenuBarManager: NSObject {
     static let shared = MenuBarManager()
     private override init() {}
 
     private var statusItem: NSStatusItem?
-    private var mainWindowController: MainWindowController?
 
     func setup() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -30,7 +30,7 @@ final class MenuBarManager: NSObject {
         let menu = NSMenu()
 
         let openItem = NSMenuItem(
-            title: "Open Flourish",
+            title: "Open flourish",
             action: #selector(openMainWindow),
             keyEquivalent: "1"
         )
@@ -49,7 +49,7 @@ final class MenuBarManager: NSObject {
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(
-            title: "Quit Flourish",
+            title: "Quit flourish",
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
         )
@@ -65,16 +65,16 @@ final class MenuBarManager: NSObject {
     }
 
     @objc func openMainWindow() {
-        if mainWindowController == nil {
-            mainWindowController = MainWindowController()
+        guard AuthService.shared.currentUser != nil else {
+            SignInWindowController.shared.show(); return
         }
-        mainWindowController?.showAndFocus()
+        MainWindowController.shared.showAndFocus()
     }
 
     @objc func openSettings() {
-        if mainWindowController == nil {
-            mainWindowController = MainWindowController()
+        guard AuthService.shared.currentUser != nil else {
+            SignInWindowController.shared.show(); return
         }
-        mainWindowController?.showAndFocus(section: .settings)
+        MainWindowController.shared.showAndFocus(section: .settings)
     }
 }

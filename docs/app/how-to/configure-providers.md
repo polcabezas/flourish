@@ -1,6 +1,6 @@
 # Configure the LLM Provider and Model
 
-How founders control which LLM provider and model the Flourish app uses, via the Cloudflare Worker proxy.
+How founders control which LLM provider and model the flourish app uses, via the Cloudflare Worker proxy.
 
 This guide is for founders and developers only. End users have no provider or model settings — the app connects to the proxy automatically.
 
@@ -8,7 +8,7 @@ This guide is for founders and developers only. End users have no provider or mo
 
 ## How provider and model selection works
 
-Flourish sends all prompts to a Cloudflare Worker proxy (`cloudflare/worker.js`). The Worker holds the real provider API keys as Cloudflare secrets. Provider and model are controlled by two environment variables in `cloudflare/wrangler.toml`:
+flourish sends all prompts to a Cloudflare Worker proxy (`cloudflare/worker.js`). The Worker holds the real provider API keys as Cloudflare secrets. Provider and model are controlled by two environment variables in `cloudflare/wrangler.toml`:
 
 | Variable | Purpose | Example value |
 |----------|---------|---------------|

@@ -5,12 +5,14 @@ import SwiftUI
 enum MainSection: String, CaseIterable, Hashable {
     case home     = "home"
     case profiles = "profiles"
+    case account  = "account"
     case settings = "settings"
 
     var label: String {
         switch self {
         case .home:     return "Home"
         case .profiles: return "Profiles"
+        case .account:  return "Account"
         case .settings: return "Settings"
         }
     }
@@ -19,6 +21,7 @@ enum MainSection: String, CaseIterable, Hashable {
         switch self {
         case .home:     return "house"
         case .profiles: return "rectangle.stack"
+        case .account:  return "person.circle"
         case .settings: return "gearshape"
         }
     }
@@ -53,6 +56,7 @@ struct MainWindowView: View {
         switch section {
         case .home:     HomeView()
         case .profiles: ProfilesView()
+        case .account:  AccountView()
         case .settings: SettingsPanelView()
         }
     }
@@ -69,7 +73,7 @@ private struct SidebarView: View {
         VStack(spacing: 0) {
             // Logo
             HStack(spacing: 10) {
-                FlourishWordmarkView(height: 26, color: .flourishAccent)
+                flourishWordmarkView(height: 26, color: .flourishAccent)
                 Spacer()
             }
             .padding(.horizontal, FS.sidebarItemPaddingH + 4)
@@ -94,6 +98,7 @@ private struct SidebarView: View {
                 .padding(.bottom, 6)
 
             VStack(spacing: 2) {
+                SidebarItem(section: .account,  selected: $selected)
                 SidebarItem(section: .settings, selected: $selected)
             }
             .padding(.horizontal, 8)

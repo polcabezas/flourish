@@ -27,7 +27,7 @@ The editor was introduced early in development as a power-user escape hatch: if 
 
 **The editor surface offered poor safety guarantees.** A user who accidentally removed `{guidelines}` from their custom template silently disabled all profile guidelines on every request. The validation warning in the UI helped, but it was easy to miss and could not prevent the silent failure at runtime.
 
-**The settings panel is simpler and less error-prone without it.** The profiles system (create, edit, generate with AI) is the correct mechanism for customising Flourish's output behaviour. The base prompt editor created a second, less visible configuration surface for the same concern.
+**The settings panel is simpler and less error-prone without it.** The profiles system (create, edit, generate with AI) is the correct mechanism for customising flourish's output behaviour. The base prompt editor created a second, less visible configuration surface for the same concern.
 
 ---
 

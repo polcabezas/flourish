@@ -1,6 +1,6 @@
 # Paste Automation
 
-How Flourish writes the improved prompt into the user's previous application without any clipboard managers, browser extensions, or app-specific integrations.
+How flourish writes the improved prompt into the user's previous application without any clipboard managers, browser extensions, or app-specific integrations.
 
 ---
 
@@ -34,7 +34,7 @@ func capturePreviousApp() {
 ```
 
 Two things happen:
-- `previousApp`: Reference to the currently frontmost `NSRunningApplication`. This is the app the user was in before opening Flourish's overlay.
+- `previousApp`: Reference to the currently frontmost `NSRunningApplication`. This is the app the user was in before opening flourish's overlay.
 - `savedClipboardItems`: A full copy of the current clipboard contents (all data types — plain text, rich text, images, etc.). This lets us restore it faithfully after pasting.
 
 The reason this must happen **before** the overlay appears is documented in [ADR-011](../adr/011-paste-capture-timing.md).
@@ -108,19 +108,19 @@ The `0.5` second delay ensures the Cmd+V paste event has been processed by the t
 
 Without it, `CGEvent.post` is a no-op — the event is silently dropped. The clipboard would be written, but no paste would occur.
 
-Flourish requests this permission proactively at launch:
+flourish requests this permission proactively at launch:
 
 ```swift
 AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt: true] as CFDictionary)
 ```
 
-This shows the macOS permission dialog on first run. If the user denies it, Flourish shows a follow-up alert when a paste fails, explaining how to grant it in System Settings.
+This shows the macOS permission dialog on first run. If the user denies it, flourish shows a follow-up alert when a paste fails, explaining how to grant it in System Settings.
 
 ---
 
 ## Clipboard preservation guarantees
 
-Flourish attempts to preserve **all** clipboard data types (text, RTF, images, file URLs, custom UTIs). The save/restore loop copies `NSPasteboardItem.data(forType:)` for every type in the existing item.
+flourish attempts to preserve **all** clipboard data types (text, RTF, images, file URLs, custom UTIs). The save/restore loop copies `NSPasteboardItem.data(forType:)` for every type in the existing item.
 
 **Known limitation:** Some apps write clipboard content in a lazy format (promising data on demand). These "promised" items cannot be fully captured by the save step and may not restore correctly. In practice, this is rare for common clipboard use cases (copying text from a browser, for example).
 

@@ -31,6 +31,10 @@ final class OverlayWindowController: NSWindowController {
     // MARK: - Show / Dismiss / Toggle
 
     func toggle() {
+        guard AuthService.shared.currentUser != nil else {
+            SignInWindowController.shared.show()
+            return
+        }
         if panel.isVisible {
             dismiss(paste: false)
         } else {
@@ -91,7 +95,7 @@ final class OverlayWindowController: NSWindowController {
 
     @MainActor
     private func runLLM(text: String) async {
-        let service = FlourishProxyService()
+        let service = flourishProxyService()
         let model = ""  // controlled by Cloudflare Worker env vars
         let guidelines = Defaults.selectedProfile()?.systemPrompt ?? ""
         let targetPlatform = Defaults[.targetPlatform]
@@ -123,6 +127,9 @@ final class OverlayWindowController: NSWindowController {
                 estimatedCostUSD: cost
             )
             try? HistoryStore.shared.insert(entry)
+
+            // Notify the Account view to refresh usage (counter just incremented on the server)
+            NotificationCenter.default.post(name: .flourishDidImprovePrompt, object: nil)
 
             // Update all-time stats
             Defaults[.totalRequestCount] += 1
@@ -195,7 +202,7 @@ final class OverlayWindowController: NSWindowController {
 
     private func showError(_ error: Error) {
         let alert = NSAlert()
-        alert.messageText = "Flourish"
+        alert.messageText = "flourish"
         alert.informativeText = error.localizedDescription
         alert.alertStyle = .warning
         alert.addButton(withTitle: "OK")

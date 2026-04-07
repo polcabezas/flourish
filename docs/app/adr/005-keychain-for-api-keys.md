@@ -47,10 +47,10 @@ Not appropriate for a GUI app. Would require the user to set them before every l
 Keychain is the macOS standard for storing sensitive credentials. Every password manager, browser, and cloud sync tool on macOS uses it. The Security framework API is well-documented and battle-tested.
 
 `KeychainService` provides a simple CRUD interface:
-- Service: `"com.personal.flourish"` (identifies the set of items belonging to Flourish)
+- Service: `"com.personal.flourish"` (identifies the set of items belonging to flourish)
 - Account: `provider.rawValue` (`"openrouter"` or `"groq"`)
 
-Because Flourish uses ad-hoc signing (no team ID), the Keychain items are accessible only to Flourish on the machine where they were created. This is acceptable for a personal-use app.
+Because flourish uses ad-hoc signing (no team ID), the Keychain items are accessible only to flourish on the machine where they were created. This is acceptable for a personal-use app.
 
 ---
 
@@ -59,9 +59,9 @@ Because Flourish uses ad-hoc signing (no team ID), the Keychain items are access
 - API keys are never written to disk in plaintext. ✓
 - Keys survive app updates (Keychain items are not tied to the app binary). ✓
 - Keys do not appear in UserDefaults dumps, diagnostics, or bug reports. ✓
-- macOS may prompt the user for their login password when Flourish first accesses the Keychain (on some OS configurations). This is a one-time event.
+- macOS may prompt the user for their login password when flourish first accesses the Keychain (on some OS configurations). This is a one-time event.
 - Ad-hoc signing means the Keychain cannot use data protection classes (no `.whenUnlocked` access control that requires Face ID / Touch ID). Items use the default access control, which requires the machine to be unlocked.
-- No iCloud Keychain sync (Flourish items stay device-local). Acceptable for v1.0.0.
+- No iCloud Keychain sync (flourish items stay device-local). Acceptable for v1.0.0.
 
 ---
 

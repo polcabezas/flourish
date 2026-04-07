@@ -1,15 +1,15 @@
 # Data Persistence Strategy
 
-How Flourish decides what to store in Info.plist (build-time injection), SQLite, UserDefaults, or session-only memory — and why.
+How flourish decides what to store in Info.plist (build-time injection), SQLite, UserDefaults, session-only memory, or remote Supabase PostgreSQL — and why.
 
 ---
 
-## The four tiers
+## The five tiers
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │                                                     │
-│  INFO.PLIST        Proxy URL + proxy token          │
+│  INFO.PLIST        Proxy URL                        │
 │  (build-time)      Injected from Secrets.xcconfig.  │
 │                    Read-only at runtime.             │
 │                                                     │
@@ -25,29 +25,32 @@ How Flourish decides what to store in Info.plist (build-time injection), SQLite,
 │  (in-process,      In-memory. Lost on quit.         │
 │   ephemeral)       No I/O overhead.                 │
 │                                                     │
+│  SUPABASE POSTGRES Plan, usage counters, Stripe ID  │
+│  (remote)          Owned by the Cloudflare Worker.  │
+│                    Authoritative for billing.        │
+│                                                     │
 └─────────────────────────────────────────────────────┘
 ```
 
-Note: The Keychain tier was previously used for OpenRouter and Groq API keys. With the move to the Cloudflare Worker proxy (ADR-015), user-facing API keys no longer exist. Provider API keys are stored as Cloudflare secrets in the Worker. The proxy bearer token is embedded in `Info.plist` at build time via `Secrets.xcconfig`.
+Note: The Keychain tier was previously used for OpenRouter and Groq API keys. With the move to the Cloudflare Worker proxy (ADR-015), user-facing API keys no longer exist. Provider API keys are stored as Cloudflare secrets in the Worker. A prior architecture stored the proxy bearer token in `Info.plist`; authentication is now handled via Supabase JWTs (see ADR-023).
 
 ---
 
 ## Info.plist (build-time injection): Proxy configuration
 
-**What goes here:** `FlourishProxyURL` (hostname of the Cloudflare Worker), `FlourishProxyToken` (bearer token for authenticating to the Worker).
+**What goes here:** `flourishProxyURL` — the hostname of the Cloudflare Worker (e.g. `flourish-proxy.yoursubdomain.workers.dev`).
 
 **Why Info.plist and not Keychain or UserDefaults:**
-- These values are set at build time by the developer and do not change at runtime — they are configuration, not user data.
-- The proxy token is a lower-stakes secret than a provider API key: it is proxy-specific, can be rate-limited at the Worker, and can be rotated by issuing a new build.
+- This value is set at build time by the developer and does not change at runtime — it is configuration, not user data.
 - Injecting via `Secrets.xcconfig` → build settings → `Info.plist` is the standard iOS/macOS pattern for build-time configuration that must not be committed to source control.
 
 **Access pattern:**
-- Read once at the start of each `FlourishProxyService.improvePrompt` call from `Bundle.main.infoDictionary`.
+- Read once at the start of each `FlourishProxyService` call from `Bundle.main.infoDictionary`.
 - Never written at runtime.
 
-**Implementation:** `Secrets.xcconfig` (gitignored) → `FLOURISH_PROXY_URL` / `FLOURISH_PROXY_TOKEN` build settings → `Info.plist` keys `FlourishProxyURL` / `FlourishProxyToken`.
+**Implementation:** `Secrets.xcconfig` (gitignored) → `flourish_PROXY_URL` build setting → `Info.plist` key `flourishProxyURL`.
 
-See [ADR-015: Cloudflare Worker Proxy](../adr/015-cloudflare-worker-proxy.md).
+Authentication to the Worker uses a Supabase JWT obtained after sign-in, not a static token. See [ADR-023: Supabase Auth](../adr/023-supabase-auth-strategy.md) and [ADR-015: Cloudflare Worker Proxy](../adr/015-cloudflare-worker-proxy.md).
 
 ---
 
@@ -129,17 +132,40 @@ See [ADR-014: Draft Saved on Dismiss](../adr/014-draft-save-on-dismiss.md).
 
 ---
 
+## Supabase PostgreSQL (remote): Subscription and usage
+
+**What goes here:** The `user_subscriptions` table — per-user plan tier (`free`/`pro`), monthly request counter, Stripe customer ID, billing period reset date.
+
+**Why remote and not local:**
+- This data must be authoritative at the server level. Client-side enforcement of plan limits can be bypassed. Only the Worker (with `service_role` access) can write these values.
+- Supabase PostgreSQL is already the auth provider — using the same project for usage data consolidates all user data in one dashboard with no additional infrastructure.
+- The Worker accesses Supabase via HTTPS REST API. The app reads its own row via `GET /account/usage` on the Worker (which proxies the data).
+
+**Why not Cloudflare D1 (the prior approach):**
+- D1 data was only visible via CLI (`wrangler d1 execute`). Supabase provides a web dashboard for direct data inspection.
+- D1 is a separate system from Supabase Auth, meaning user rows had to be created manually via `/account/create`. Supabase triggers handle row lifecycle transactionally.
+
+**Access pattern (app side):**
+- `AccountViewModel` calls `GET /account/usage` to read plan, usage count, and reset date.
+- `Defaults.lastKnownSubscription` caches the last-known tier locally so `AccountView` can render before the network response arrives.
+- The app never writes to Supabase directly; all writes go through the Worker.
+
+See [ADR-027: Supabase PostgreSQL over D1](../adr/027-supabase-postgres-over-d1.md).
+
+---
+
 ## Decision matrix
 
 | Data | Sensitive? | Large/Growing? | Queryable? | Ephemeral? | → Store in |
 |------|-----------|----------------|-----------|-----------|-----------|
-| Proxy URL + token | YES (build-time secret) | No | No | No | Info.plist (from Secrets.xcconfig) |
-| Prompt history | No | YES | YES | No | SQLite |
+| Proxy URL | No (non-secret config) | No | No | No | Info.plist (from Secrets.xcconfig) |
+| Prompt history | No | YES | YES | No | SQLite (GRDB) |
 | Profiles | No | No (bounded) | No | No | UserDefaults |
 | Settings | No | No | No | No | UserDefaults |
 | All-time stats | No | No | No | No | UserDefaults |
 | Session stats | No | No | No | YES | Session memory |
 | Overlay draft | No | No | No | No | UserDefaults |
+| Plan, usage, Stripe | YES (server-authoritative) | No | No | No | Supabase PostgreSQL (via Worker) |
 
 ---
 
@@ -148,6 +174,8 @@ See [ADR-014: Draft Saved on Dismiss](../adr/014-draft-save-on-dismiss.md).
 - [ADR-003: GRDB over CoreData](../adr/003-grdb-over-coredata.md)
 - [ADR-004: Defaults Package](../adr/004-defaults-package.md)
 - [ADR-015: Cloudflare Worker Proxy](../adr/015-cloudflare-worker-proxy.md) — explains why proxy config is in Info.plist, not Keychain
+- [ADR-023: Supabase Auth Strategy](../adr/023-supabase-auth-strategy.md)
+- [ADR-027: Supabase PostgreSQL over D1](../adr/027-supabase-postgres-over-d1.md)
 - [ADR-010: Session Stats Separate](../adr/010-session-stats-separate.md)
 - [ADR-014: Draft Saved on Dismiss](../adr/014-draft-save-on-dismiss.md)
 - [Database Schema Reference](../reference/database-schema.md)

@@ -1,5 +1,5 @@
 XCODEGEN    := xcodegen
-XCODEPROJ   := Flourish.xcodeproj
+XCODEPROJ   := flourish.xcodeproj
 WORKSPACE   := $(XCODEPROJ)/project.xcworkspace
 SHARED_DATA := $(WORKSPACE)/xcshareddata
 SETTINGS    := $(SHARED_DATA)/WorkspaceSettings.xcsettings

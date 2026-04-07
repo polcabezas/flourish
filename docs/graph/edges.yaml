@@ -1,5 +1,5 @@
 ---
-# Flourish Documentation Graph Edges
+# flourish Documentation Graph Edges
 # Defines explicit relationships between documents for navigation and discoverability.
 
 edges:
@@ -323,6 +323,133 @@ edges:
   - from: ref-app-settings
     to: adr-021
     rel: rationale
+
+  # Lowercase project name cross-links
+  - from: adr-022
+    to: adr-002
+    rel: see-also
+
+  - from: adr-022
+    to: ref-build-config
+    rel: reference
+
+  - from: ref-build-config
+    to: adr-022
+    rel: rationale
+
+  - from: howto-build-distribute
+    to: adr-022
+    rel: rationale
+
+  # Auth/billing cross-links
+  - from: adr-023
+    to: adr-015
+    rel: see-also
+
+  - from: adr-023
+    to: adr-024
+    rel: see-also
+
+  - from: adr-023
+    to: adr-025
+    rel: see-also
+
+  - from: adr-023
+    to: adr-026
+    rel: see-also
+
+  - from: adr-023
+    to: ref-app-settings
+    rel: reference
+
+  - from: adr-024
+    to: adr-007
+    rel: see-also
+
+  - from: adr-024
+    to: adr-023
+    rel: rationale
+
+  - from: adr-024
+    to: ref-architecture
+    rel: reference
+
+  - from: adr-025
+    to: adr-015
+    rel: see-also
+
+  - from: adr-025
+    to: adr-023
+    rel: rationale
+
+  - from: adr-025
+    to: adr-026
+    rel: see-also
+
+  - from: adr-025
+    to: ref-file-structure
+    rel: reference
+
+  - from: adr-026
+    to: adr-015
+    rel: see-also
+
+  - from: adr-026
+    to: adr-023
+    rel: rationale
+
+  - from: adr-026
+    to: adr-025
+    rel: see-also
+
+  - from: adr-026
+    to: ref-architecture
+    rel: reference
+
+  - from: ref-architecture
+    to: adr-023
+    rel: rationale
+
+  - from: ref-architecture
+    to: adr-024
+    rel: rationale
+
+  - from: ref-data-models
+    to: adr-023
+    rel: rationale
+
+  - from: ref-app-settings
+    to: adr-023
+    rel: rationale
+
+  - from: howto-manage-account
+    to: adr-023
+    rel: rationale
+
+  - from: howto-manage-account
+    to: adr-024
+    rel: rationale
+
+  - from: howto-manage-account
+    to: adr-025
+    rel: rationale
+
+  - from: howto-manage-account
+    to: adr-026
+    rel: rationale
+
+  - from: howto-manage-account
+    to: ref-data-models
+    rel: reference
+
+  # Changelog cross-links
+  - from: changelog-v1-2-1
+    to: adr-026
+    rel: rationale
+
+  - from: changelog-v1-2-1
+    to: howto-manage-account
+    rel: see-also
 
   # Security cross-links
   - from: security

@@ -1,12 +1,12 @@
 # LLM Provider Abstraction
 
-Why Flourish uses a protocol to abstract LLM access, and how the Cloudflare Worker proxy architecture fulfills the original goals of that protocol.
+Why flourish uses a protocol to abstract LLM access, and how the Cloudflare Worker proxy architecture fulfills the original goals of that protocol.
 
 ---
 
 ## The original problem
 
-Flourish needs to send prompt text to an LLM and receive improved text back. The calling code in `OverlayWindowController.runLLM()` should not care about which provider is used, how requests are authenticated, or what the wire format looks like — it just wants to send text and get back improved text with token metadata.
+flourish needs to send prompt text to an LLM and receive improved text back. The calling code in `OverlayWindowController.runLLM()` should not care about which provider is used, how requests are authenticated, or what the wire format looks like — it just wants to send text and get back improved text with token metadata.
 
 The `LLMService` protocol captures this contract:
 
@@ -26,10 +26,10 @@ This is the entire interface surface that `runLLM()` depends on.
 
 ## Current architecture: single proxy implementation
 
-With the move to a Cloudflare Worker proxy (ADR-015), there is now one concrete implementation: `FlourishProxyService`. The call site in `OverlayWindowController` is simple:
+With the move to a Cloudflare Worker proxy (ADR-015), there is now one concrete implementation: `flourishProxyService`. The call site in `OverlayWindowController` is simple:
 
 ```swift
-let service: LLMService = FlourishProxyService()
+let service: LLMService = flourishProxyService()
 let response = try await service.improvePrompt(text, systemPrompt: systemPrompt, model: "")
 ```
 
@@ -57,10 +57,10 @@ Changing provider or model requires `wrangler deploy` only — no app rebuild. T
 
 ## Services are not singletons
 
-`FlourishProxyService` is instantiated **per-call**:
+`flourishProxyService` is instantiated **per-call**:
 
 ```swift
-let service = FlourishProxyService()
+let service = flourishProxyService()
 ```
 
 This design:
@@ -83,7 +83,7 @@ Contrast with window controllers and stores, which are singletons because AppKit
 
 ## LLMError centralizes user-facing messages
 
-Both `FlourishProxyService` and any future implementations throw `LLMError`. This centralizes the mapping from HTTP status codes to user-facing messages in one enum. The overlay presents the `localizedDescription` of whatever `LLMError` is thrown — the presenting code never needs to know the details of where the error came from.
+Both `flourishProxyService` and any future implementations throw `LLMError`. This centralizes the mapping from HTTP status codes to user-facing messages in one enum. The overlay presents the `localizedDescription` of whatever `LLMError` is thrown — the presenting code never needs to know the details of where the error came from.
 
 ---
 

@@ -1,14 +1,14 @@
 import Foundation
 
 // MARK: - Profile Generator Service
-// Calls the Flourish proxy with a meta-prompt to generate a custom GuidelineProfile
+// Calls the flourish proxy with a meta-prompt to generate a custom GuidelineProfile
 // from a plain-language description of the user's role and tasks.
 
 final class ProfileGeneratorService {
-    private let proxy = FlourishProxyService()
+    private let proxy = flourishProxyService()
 
     private static let metaPrompt = """
-    You are a profile generator for Flourish, a tool that improves AI prompts for office \
+    You are a profile generator for flourish, a tool that improves AI prompts for office \
     professionals who are not prompt engineers.
 
     Given a description of someone's role and work, generate a custom profile that will \

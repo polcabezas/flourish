@@ -28,6 +28,7 @@ enum LLMError: LocalizedError {
     case unauthorized
     case billingError
     case rateLimited
+    case monthlyLimitReached(plan: String, limit: Int)
     case serverError(Int)
     case invalidResponse
     case noContent
@@ -39,11 +40,13 @@ enum LLMError: LocalizedError {
         case .badRequest(let msg):
             return "Bad request: \(msg)"
         case .unauthorized:
-            return "Authorization failed. Please contact support."
+            return "Sign in to use flourish."
         case .billingError:
             return "Service billing issue. Please contact support."
         case .rateLimited:
             return "Rate limit reached. Wait a moment and try again."
+        case .monthlyLimitReached(let plan, let limit):
+            return "You've used all \(limit) requests on the \(plan) plan this month. Upgrade to continue."
         case .serverError(let code):
             return "Server error (\(code)). The service may be temporarily unavailable."
         case .invalidResponse:
@@ -52,6 +55,14 @@ enum LLMError: LocalizedError {
             return "The model returned an empty response."
         }
     }
+}
+
+// MARK: - Worker Limit Error (decoded from 429 response body)
+
+struct WorkerLimitError: Decodable {
+    let error: String
+    let plan: String
+    let limit: Int
 }
 
 // MARK: - Shared OpenAI-Compatible Response Types

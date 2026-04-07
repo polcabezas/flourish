@@ -7,7 +7,7 @@ xcuserdata/
 
 # Generated .xcodeproj (regenerate with: xcodegen generate)
 # project.yml is the source of truth — commit that instead.
-Flourish.xcodeproj/
+flourish.xcodeproj/
 
 # Build output
 build/
@@ -54,4 +54,4 @@ Podfile.lock
 flourish-context.txt
 
 # Secrets — never commit real proxy credentials
-Flourish/Config/Secrets.xcconfig
+flourish/Config/Secrets.xcconfig

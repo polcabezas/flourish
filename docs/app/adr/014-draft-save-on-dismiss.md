@@ -13,7 +13,7 @@ The overlay draft (text typed but not submitted) is saved to UserDefaults only w
 
 ## Context
 
-When a user opens the overlay, types a draft prompt, and dismisses it (Escape or hotkey toggle) without submitting, Flourish saves the draft so it can be restored on the next overlay open. The question is: when should the save happen?
+When a user opens the overlay, types a draft prompt, and dismisses it (Escape or hotkey toggle) without submitting, flourish saves the draft so it can be restored on the next overlay open. The question is: when should the save happen?
 
 Two options:
 1. **On every keystroke**: maximum safety — the draft is always up to date.

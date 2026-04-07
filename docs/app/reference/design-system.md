@@ -1,8 +1,8 @@
 # Design System Reference
 
-All design tokens, typography, spacing, layout constants, and visual guidelines for the Flourish UI.
+All design tokens, typography, spacing, layout constants, and visual guidelines for the flourish UI.
 
-The design system lives in `Flourish/DesignSystem/` and is accessed primarily through the `FS` namespace (`FlourishSpacing.swift`).
+The design system lives in `flourish/DesignSystem/` and is accessed primarily through the `FS` namespace (`flourishSpacing.swift`).
 
 ---
 
@@ -14,7 +14,7 @@ The design system lives in `Flourish/DesignSystem/` and is accessed primarily th
 
 ## Colors
 
-Defined in `FlourishColors.swift` as `Color` extensions using hex values.
+Defined in `flourishColors.swift` as `Color` extensions using hex values.
 
 | Token | Hex | Usage |
 |-------|-----|-------|
@@ -35,7 +35,7 @@ Hex colors are expressed as `Color(hex: "RRGGBB")` using a hex initializer exten
 
 ## Typography
 
-Defined in `FlourishTypography.swift`. Flourish uses **SF Pro** exclusively — no custom fonts.
+Defined in `flourishTypography.swift`. flourish uses **SF Pro** exclusively — no custom fonts.
 
 | Token | Size | Weight | Usage |
 |-------|------|--------|-------|
@@ -49,7 +49,7 @@ Defined in `FlourishTypography.swift`. Flourish uses **SF Pro** exclusively — 
 
 ## Spacing
 
-Defined in `FlourishSpacing.swift` under the `FS` namespace. Base unit: **4pt**.
+Defined in `flourishSpacing.swift` under the `FS` namespace. Base unit: **4pt**.
 
 ```swift
 enum FS {
@@ -139,7 +139,7 @@ enum FS {
 
 ## Logo
 
-Defined in `FlourishLogoView.swift` as a custom SwiftUI `Shape`.
+Defined in `flourishLogoView.swift` as a custom SwiftUI `Shape`.
 
 - Design canvas: 65 × 100 unit coordinate space
 - Represents a lowercase 'f' with a plant/leaf motif (the "flourish" concept)

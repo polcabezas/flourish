@@ -13,7 +13,7 @@ Cap the SQLite history table at 500 entries. When a new entry is inserted and th
 
 ## Context
 
-Without a capacity limit, the history database grows indefinitely. Users who use Flourish heavily for months or years could accumulate thousands of entries. The implications:
+Without a capacity limit, the history database grows indefinitely. Users who use flourish heavily for months or years could accumulate thousands of entries. The implications:
 - Larger database file on disk (minor, since prompts are small).
 - Slower queries on unindexed columns (mitigated by the `created_at` index).
 - More data to scroll through in the Home view without a clear value proposition.
@@ -34,7 +34,7 @@ More intuitive to users. Harder to implement (requires a scheduled cleanup job o
 Adds settings UI complexity for a low-value setting. Defaults to 500, which is sufficient for all current use cases. Rejected.
 
 ### Smaller limit (e.g., 100 entries)
-Would be too restrictive for users who use Flourish daily. 500 entries at ~500 bytes each = ~250KB maximum database size. Negligible. Rejected.
+Would be too restrictive for users who use flourish daily. 500 entries at ~500 bytes each = ~250KB maximum database size. Negligible. Rejected.
 
 ---
 

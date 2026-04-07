@@ -134,7 +134,7 @@ Each layer has a distinct, non-overlapping responsibility, preventing the improv
 ### 4.1 Service instantiation and call
 
 ```swift
-let service: LLMService = FlourishProxyService()
+let service: LLMService = flourishProxyService()
 
 let response = try await service.improvePrompt(
     text,
@@ -143,8 +143,8 @@ let response = try await service.improvePrompt(
 )
 ```
 
-`FlourishProxyService.improvePrompt` reads `FlourishProxyURL` and `FlourishProxyToken` from `Bundle.main.infoDictionary`, then:
-1. Builds an HTTP POST request to `https://<FlourishProxyURL>/improve`.
+`flourishProxyService.improvePrompt` reads `flourishProxyURL` and `flourishProxyToken` from `Bundle.main.infoDictionary`, then:
+1. Builds an HTTP POST request to `https://<flourishProxyURL>/improve`.
 2. Sends `{ "text": text, "systemPrompt": systemPrompt }` as the JSON body.
 3. Awaits the response (timeout: 60 seconds).
 4. Decodes `{ text, tokensIn, tokensOut, model }` into `LLMResponse`.
@@ -265,7 +265,7 @@ LoaderWindowController.shared.hide()
 | Network timeout (60s) | "Server error" alert | User retries |
 | HTTP 401 from Worker | "Proxy authentication failed" alert | Developer rebuilds with valid proxy token |
 | HTTP 429 | "Rate limit" alert | User waits |
-| HTTP 402 | "Billing issue. Contact the Flourish team." | Founder tops up provider account |
+| HTTP 402 | "Billing issue. Contact the flourish team." | Founder tops up provider account |
 | Empty response | "Empty response" alert | User retries; founder checks model config |
 | Accessibility denied | NSAlert with instructions | User grants in System Settings |
 

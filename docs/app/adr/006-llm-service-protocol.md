@@ -13,7 +13,7 @@ Define `LLMService` as a Swift protocol with a single method. All LLM provider i
 
 ## Context
 
-Flourish supports two LLM providers (OpenRouter, Groq) and anticipates adding more. Without abstraction, the `runLLM()` function would contain duplicated request-building code for each provider and would need to be modified every time a provider is added or removed.
+flourish supports two LLM providers (OpenRouter, Groq) and anticipates adding more. Without abstraction, the `runLLM()` function would contain duplicated request-building code for each provider and would need to be modified every time a provider is added or removed.
 
 The two providers happen to share an OpenAI-compatible API shape, but this is not guaranteed for future providers. The abstraction must not assume API compatibility — it must only define the observable behavior.
 
@@ -51,7 +51,7 @@ The `LLMService` protocol:
 - Services are stateless (instantiated per-call) — no risk of stale configuration from a cached singleton. ✓
 - The protocol requires async/throws, which means all implementations must handle networking and error propagation correctly — no shortcuts. ✓
 
-**Update (ADR-015):** The protocol is retained. However, with the move to a Cloudflare Worker proxy (ADR-015), the concrete implementations `OpenRouterService` and `GroqService` were removed and replaced by a single `FlourishProxyService`. The call site in `OverlayWindowController.runLLM()` now creates `FlourishProxyService()` directly — no switch statement is needed because there is only one implementation. The protocol still provides its full value for testing via mock conformances.
+**Update (ADR-015):** The protocol is retained. However, with the move to a Cloudflare Worker proxy (ADR-015), the concrete implementations `OpenRouterService` and `GroqService` were removed and replaced by a single `flourishProxyService`. The call site in `OverlayWindowController.runLLM()` now creates `flourishProxyService()` directly — no switch statement is needed because there is only one implementation. The protocol still provides its full value for testing via mock conformances.
 
 ---
 

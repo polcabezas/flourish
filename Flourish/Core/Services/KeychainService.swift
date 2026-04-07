@@ -81,4 +81,54 @@ final class KeychainService {
     func hasKey(for provider: LLMProvider) -> Bool {
         load(for: provider) != nil
     }
+
+    // MARK: - Generic String-Keyed API (used by AuthService for Supabase tokens)
+
+    @discardableResult
+    func saveString(_ value: String, account: String) -> Bool {
+        guard let data = value.data(using: .utf8), !value.isEmpty else {
+            deleteString(account: account)
+            return true
+        }
+        let lookup: [String: Any] = [
+            kSecClass as String:       kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+        ]
+        let updateStatus = SecItemUpdate(
+            lookup as CFDictionary,
+            [kSecValueData as String: data] as CFDictionary
+        )
+        if updateStatus == errSecSuccess { return true }
+        if updateStatus != errSecItemNotFound { return false }
+        var add = lookup
+        add[kSecValueData as String] = data
+        return SecItemAdd(add as CFDictionary, nil) == errSecSuccess
+    }
+
+    func loadString(account: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String:       kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecReturnData as String:  true,
+            kSecMatchLimit as String:  kSecMatchLimitOne,
+        ]
+        var result: AnyObject?
+        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
+              let data = result as? Data,
+              let str = String(data: data, encoding: .utf8), !str.isEmpty else { return nil }
+        return str
+    }
+
+    @discardableResult
+    func deleteString(account: String) -> Bool {
+        let query: [String: Any] = [
+            kSecClass as String:       kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+        ]
+        let status = SecItemDelete(query as CFDictionary)
+        return status == errSecSuccess || status == errSecItemNotFound
+    }
 }

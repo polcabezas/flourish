@@ -1,6 +1,6 @@
-# How Flourish Connects to an LLM
+# How flourish Connects to an LLM
 
-**Note:** This document replaces the former "Add Your First Provider" tutorial. As of the current architecture, Flourish connects to LLM providers automatically via a company-operated Cloudflare Worker proxy. Users do not configure API keys or select providers. This page explains the connection model for developers building from source.
+**Note:** This document replaces the former "Add Your First Provider" tutorial. As of the current architecture, flourish connects to LLM providers automatically via a company-operated Cloudflare Worker proxy. Users do not configure API keys or select providers. This page explains the connection model for developers building from source.
 
 ---
 

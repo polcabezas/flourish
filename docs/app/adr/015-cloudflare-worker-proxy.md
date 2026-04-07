@@ -16,7 +16,7 @@ Replace per-user API key management (OpenRouter, Groq keys stored in Keychain) w
 The original architecture (ADR-005, ADR-006) required every user to:
 1. Create their own OpenRouter or Groq account.
 2. Generate an API key.
-3. Enter that key into Flourish's Settings → Providers UI.
+3. Enter that key into flourish's Settings → Providers UI.
 4. Manage key rotation and account balance independently.
 
 This created significant friction during onboarding and made it impossible for founders to iterate on provider or model selection without shipping an app update. It also meant that provider costs were distributed across many small accounts with no central visibility.
@@ -37,7 +37,7 @@ Zero infrastructure. However, keys would be trivially extractable from the binar
 A self-hosted API gateway would give full control but requires running and maintaining infrastructure (servers, TLS certificates, authentication middleware, database for per-user rate limiting). Rejected as disproportionate for the current stage.
 
 ### Cloudflare Worker proxy
-A lightweight JavaScript Worker deployed to Cloudflare's edge network. Real provider API keys are stored as Cloudflare secrets — they never appear in the Worker source code or in `wrangler.toml`. The app authenticates to the Worker with a single shared bearer token (`FLOURISH_PROXY_TOKEN`). Provider and model selection are controlled by the founders via `ACTIVE_PROVIDER` and `ACTIVE_MODEL` environment variables in `wrangler.toml`. Changing provider or model requires only `wrangler deploy` — no app rebuild. Accepted.
+A lightweight JavaScript Worker deployed to Cloudflare's edge network. Real provider API keys are stored as Cloudflare secrets — they never appear in the Worker source code or in `wrangler.toml`. The app authenticates to the Worker with a single shared bearer token (`flourish_PROXY_TOKEN`). Provider and model selection are controlled by the founders via `ACTIVE_PROVIDER` and `ACTIVE_MODEL` environment variables in `wrangler.toml`. Changing provider or model requires only `wrangler deploy` — no app rebuild. Accepted.
 
 ---
 
@@ -49,7 +49,7 @@ The Worker proxy achieves the product goal (zero API key friction for users) whi
 - No server infrastructure to maintain.
 - Free tier sufficient for early-stage usage.
 
-The proxy bearer token (`FLOURISH_PROXY_TOKEN`) is a lower-stakes secret than provider API keys: it is specific to this proxy, rate-limited by the Worker, and can be rotated independently of any provider account. It is stored in `Secrets.xcconfig` (gitignored) and injected into `Info.plist` at build time — it is never hardcoded in source.
+The proxy bearer token (`flourish_PROXY_TOKEN`) is a lower-stakes secret than provider API keys: it is specific to this proxy, rate-limited by the Worker, and can be rotated independently of any provider account. It is stored in `Secrets.xcconfig` (gitignored) and injected into `Info.plist` at build time — it is never hardcoded in source.
 
 The `//`-as-comment limitation of xcconfig syntax requires storing only the hostname in `Secrets.xcconfig` (e.g., `flourish-proxy.yoursubdomain.workers.dev`); the Swift code prepends `https://` when constructing the `URLRequest`.
 
@@ -58,13 +58,13 @@ The `//`-as-comment limitation of xcconfig syntax requires storing only the host
 ## Architecture
 
 ```
-Flourish.app
-    │  FlourishProxyService (LLMService conformance)
-    │  reads FLOURISH_PROXY_URL + FLOURISH_PROXY_TOKEN from Info.plist
+flourish.app
+    │  flourishProxyService (LLMService conformance)
+    │  reads flourish_PROXY_URL + flourish_PROXY_TOKEN from Info.plist
     │
     ▼ HTTPS POST /improve
 Cloudflare Worker (cloudflare/worker.js)
-    │  validates Authorization: Bearer <FLOURISH_PROXY_TOKEN>
+    │  validates Authorization: Bearer <flourish_PROXY_TOKEN>
     │  reads ACTIVE_PROVIDER + ACTIVE_MODEL from environment
     │  reads OPENROUTER_API_KEY or GROQ_API_KEY from Cloudflare secrets
     │
@@ -78,20 +78,20 @@ Provider API (OpenRouter or Groq)
 |------|---------|
 | `cloudflare/worker.js` | The Worker script. Never committed with real API keys |
 | `cloudflare/wrangler.toml` | Deploy config. `ACTIVE_PROVIDER` and `ACTIVE_MODEL` set here |
-| `Flourish/Core/Services/FlourishProxyService.swift` | `LLMService` conformance. Reads proxy config from `Bundle.main.infoDictionary` |
-| `Flourish/Config/Secrets.xcconfig` | Gitignored. `FLOURISH_PROXY_URL` (hostname only) and `FLOURISH_PROXY_TOKEN` |
-| `Flourish/Config/Secrets.xcconfig.example` | Committed template. Safe to commit — contains no real values |
+| `flourish/Core/Services/flourishProxyService.swift` | `LLMService` conformance. Reads proxy config from `Bundle.main.infoDictionary` |
+| `flourish/Config/Secrets.xcconfig` | Gitignored. `flourish_PROXY_URL` (hostname only) and `flourish_PROXY_TOKEN` |
+| `flourish/Config/Secrets.xcconfig.example` | Committed template. Safe to commit — contains no real values |
 
 ### Secrets.xcconfig syntax note
 
 xcconfig files treat `//` as a line comment. URLs stored in xcconfig must omit the `https://` scheme. Only the hostname is stored:
 
 ```
-FLOURISH_PROXY_URL = flourish-proxy.yoursubdomain.workers.dev
-FLOURISH_PROXY_TOKEN = your-bearer-token-here
+flourish_PROXY_URL = flourish-proxy.yoursubdomain.workers.dev
+flourish_PROXY_TOKEN = your-bearer-token-here
 ```
 
-`FlourishProxyService` prepends `https://` when constructing the request URL.
+`flourishProxyService` prepends `https://` when constructing the request URL.
 
 ---
 
@@ -104,7 +104,7 @@ FLOURISH_PROXY_TOKEN = your-bearer-token-here
 - All provider/model settings UI is removed from the app. ✓
 - The app now has a single external dependency for LLM functionality (the Cloudflare Worker). If the Worker is unreachable, the app cannot improve prompts. This is a known and accepted trade-off.
 - Token counts and cost estimates in `LLMResponse` still work as before — the Worker forwards the provider's usage object.
-- The proxy bearer token (`FLOURISH_PROXY_TOKEN`) must be protected. Rotation requires a new build (to embed the new token), but does not require changing provider accounts.
+- The proxy bearer token (`flourish_PROXY_TOKEN`) must be protected. Rotation requires a new build (to embed the new token), but does not require changing provider accounts.
 
 ---
 

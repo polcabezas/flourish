@@ -20,13 +20,13 @@
 The ordering matters:
 - `NSWorkspace.shared.frontmostApplication` returns the current frontmost application.
 - Even though `NSPanel` with `.nonactivatingPanel` does not change the frontmost application, there is a subtle window where `NSWorkspace` may update its internal state during panel appearance.
-- If `capturePreviousApp()` is called *after* the panel appears, the returned frontmost application might, under some OS versions or race conditions, already reflect Flourish rather than the previous app.
+- If `capturePreviousApp()` is called *after* the panel appears, the returned frontmost application might, under some OS versions or race conditions, already reflect flourish rather than the previous app.
 
 ---
 
 ## Context — the race condition
 
-The issue was discovered during development when occasionally the paste would land in Flourish's own main window rather than the target app. Investigation showed that on some macOS 13.x versions, `NSWorkspace.shared.frontmostApplication` could briefly return the newly-appeared panel's owner (even for non-activating panels) due to window server notification timing.
+The issue was discovered during development when occasionally the paste would land in flourish's own main window rather than the target app. Investigation showed that on some macOS 13.x versions, `NSWorkspace.shared.frontmostApplication` could briefly return the newly-appeared panel's owner (even for non-activating panels) due to window server notification timing.
 
 ---
 

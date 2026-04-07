@@ -1,6 +1,6 @@
 # Architecture Overview
 
-Complete component map, layer diagram, and data flow for the Flourish macOS application.
+Complete component map, layer diagram, and data flow for the flourish macOS application.
 
 ---
 
@@ -10,24 +10,25 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
 ┌─────────────────────────────────────────────────────────────┐
 │                     macOS Process                            │
 │                                                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │  Menu Bar    │  │   Overlay    │  │   Main Window    │  │
-│  │  Manager     │  │   Window     │  │   Controller     │  │
-│  │  (NSStatus   │  │   Controller │  │   (NSWindow)     │  │
-│  │   Item)      │  │   + Panel    │  │                  │  │
-│  └──────┬───────┘  └──────┬───────┘  └────────┬─────────┘  │
-│         │                 │                    │            │
-│         ▼                 ▼                    ▼            │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────┐  ┌────────┐  │
+│  │ Sign In  │  │ Menu Bar │  │   Overlay    │  │  Main  │  │
+│  │ Window   │  │ Manager  │  │   Window     │  │ Window │  │
+│  │Controller│  │(NSStatus)│  │  Controller  │  │  Ctrl  │  │
+│  └────┬─────┘  └────┬─────┘  └──────┬───────┘  └───┬────┘  │
+│       │              │               │               │       │
+│       ▼              ▼               ▼               ▼       │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │                    SwiftUI Views                     │   │
-│  │  OverlayView  HomeView  ProfilesView  SettingsPanel  │   │
+│  │  SignInView  OverlayView  HomeView  AccountView      │   │
+│  │  ProfilesView  SettingsPanelView                     │   │
 │  └──────────────────────────────────────────────────────┘   │
 │                          │                                  │
 │                          ▼                                  │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │                   Service Layer                      │   │
+│  │  AuthService (Supabase)   AccountViewModel           │   │
 │  │  LLMService (protocol)                               │   │
-│  │    FlourishProxyService                              │   │
+│  │    flourishProxyService                              │   │
 │  │  HistoryStore (GRDB)                                 │   │
 │  │  PasteService           SessionStatsTracker          │   │
 │  │  BasePrompt             AppSettings (Defaults)       │   │
@@ -36,23 +37,29 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
 │                          ▼                                  │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │                   macOS APIs                         │   │
-│  │  NSPasteboard  CGEvent  AX API  SQLite               │   │
+│  │  NSPasteboard  CGEvent  AX API  SQLite  Keychain     │   │
 │  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
-                           │
-                           ▼ HTTPS
-         ┌─────────────────────────────────┐
-         │     Cloudflare Worker Proxy      │
-         │  https://<FLOURISH_PROXY_URL>   │
-         │  /improve                        │
-         └──────────────┬──────────────────┘
-                        │
-                        ▼ HTTPS (provider API key held in Worker secrets)
-         ┌─────────────────────────────────┐
-         │         External APIs           │
-         │  openrouter.ai/api/v1           │
-         │  api.groq.com/openai/v1         │
-         └─────────────────────────────────┘
+        │                          │
+        ▼ HTTPS (supabase-swift)   ▼ HTTPS + JWT Bearer
+┌───────────────┐    ┌─────────────────────────────────┐
+│ Supabase Auth │    │     Cloudflare Worker Proxy      │
+│ (OAuth, email │    │  https://<flourish_PROXY_URL>   │
+│  password,    │    │  POST /improve (JWT auth)        │
+│  token mgmt)  │    │  GET  /account/usage             │
+└───────────────┘    │  POST /billing/checkout          │
+                     │  GET  /billing/portal            │
+                     │  POST /stripe/webhook            │
+                     └──────────────┬──────────────────┘
+                                    │
+              ┌─────────────────────┼──────────────────────┐
+              ▼                     ▼                       ▼
+  ┌───────────────────┐  ┌──────────────────┐  ┌──────────────┐
+  │  Cloudflare D1    │  │   External LLMs  │  │    Stripe    │
+  │  flourish-users   │  │  openrouter.ai   │  │  (Checkout,  │
+  │  (usage counters, │  │  api.groq.com    │  │   Portal,    │
+  │   subscriptions)  │  │                  │  │   Webhooks)  │
+  └───────────────────┘  └──────────────────┘  └──────────────┘
 ```
 
 ---
@@ -63,17 +70,18 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
 
 | Component | File | Responsibility |
 |-----------|------|----------------|
-| `FlourishApp` | `FlourishApp.swift` | SwiftUI `@main` entry; declares scenes; connects `AppDelegate` |
-| `AppDelegate` | `AppDelegate.swift` | `NSApplicationDelegate`; installs global hotkey via `KeyboardShortcuts`; requests Accessibility permission; sets dock policy on launch |
+| `flourishApp` | `flourishApp.swift` | SwiftUI `@main` entry; declares scenes; connects `AppDelegate` |
+| `AppDelegate` | `AppDelegate.swift` | `NSApplicationDelegate`; starts `AuthService.shared.startObservingAuthState()`; installs global hotkey via `KeyboardShortcuts`; handles `flourish://auth/callback` deep link; requests Accessibility permission post-login; sets dock policy on launch |
 
 ### Window Controllers
 
 | Component | File | Responsibility |
 |-----------|------|----------------|
+| `SignInWindowController` | `Auth/SignInWindowController.swift` | Singleton. `@MainActor NSWindowController` owning a 320pt `NSPanel` with `SignInView`. Shown on launch when unauthenticated and after sign-out. `show()` centers on screen; `hide()` calls `orderOut` |
 | `OverlayWindowController` | `Overlay/OverlayWindowController.swift` | Singleton. Owns `OverlayPanel` and `OverlayViewModel`. Orchestrates show/hide, LLM call, clipboard write, paste simulation, history save, and stats increment |
 | `LoaderWindowController` | `Loader/LoaderWindowController.swift` | Singleton. Shows/hides a bottom-center 3-dot progress panel during LLM calls |
-| `MainWindowController` | `Main/MainWindowController.swift` | Singleton. Shows the full-screen main window with sidebar navigation |
-| `MenuBarManager` | `MenuBar/MenuBarManager.swift` | Singleton. Manages `NSStatusItem` (wand icon) and its right-click menu |
+| `MainWindowController` | `Main/MainWindowController.swift` | Singleton (`static let shared`). Shows the full-screen main window with sidebar navigation |
+| `MenuBarManager` | `MenuBar/MenuBarManager.swift` | Singleton. `@MainActor`. Manages `NSStatusItem` (wand icon) and its right-click menu. Guards `openMainWindow()` and `openSettings()` with auth check |
 
 ### Panels
 
@@ -86,6 +94,8 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
 
 | View | File | Responsibility |
 |------|------|----------------|
+| `SignInView` | `Auth/SignInView.swift` | Compact auth panel: flourish logo, email/password fields, sign-in/sign-up toggle, Google OAuth button |
+| `AccountView` | `Main/AccountView.swift` | Main window account section (authenticated users only). Shows email, plan badge, usage progress bar, requests/limit, reset date, sign-out button, and billing controls (upgrade/portal with monthly/yearly toggle) |
 | `OverlayView` | `Overlay/Views/OverlayView.swift` | Input `TextEditor`, toolbar row (profile picker, target platform picker, submit button), hints row |
 | `ProfilePickerView` | `Overlay/Views/ProfilePickerView.swift` | Profile dropdown in the overlay toolbar |
 | `TargetPlatformPickerView` | `Overlay/Views/TargetPlatformPickerView.swift` | Native `.menu` style `Picker` bound to `Defaults[.targetPlatform]`; lists all `TargetPlatform` cases |
@@ -103,19 +113,21 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
 
 | Service | File | Responsibility |
 |---------|------|----------------|
+| `AuthService` | `Core/Services/AuthService.swift` | `@MainActor ObservableObject` singleton. Wraps `SupabaseClient`. Observes `authStateChanges` stream as single source of truth. Methods: `startObservingAuthState()`, `signIn`, `signUp`, `signInWithGoogle()`, `handleAuthCallback(url:)`, `signOut()`, `currentAccessToken() async`, `ensureAccountExists()` |
 | `LLMService` (protocol) | `Core/Services/LLMService.swift` | Defines `improvePrompt(_:systemPrompt:model:) async throws -> LLMResponse` |
-| `FlourishProxyService` | `Core/Services/FlourishProxyService.swift` | Implements `LLMService`. Reads `FlourishProxyURL` and `FlourishProxyToken` from `Bundle.main.infoDictionary`. POSTs to the Cloudflare Worker `/improve` endpoint |
+| `flourishProxyService` | `Core/Services/flourishProxyService.swift` | Implements `LLMService`. Reads `flourishProxyURL` from `Bundle.main.infoDictionary`. Awaits `AuthService.shared.currentAccessToken()` for the JWT Bearer token. POSTs to the Worker `/improve` endpoint. Handles 429 `monthly_limit_reached` error |
 | `BasePrompt` | `Core/Services/BasePrompt.swift` | Builds the system prompt by substituting `{guidelines}` with the selected profile's text |
 | `HistoryStore` | `Core/Services/HistoryStore.swift` | GRDB SQLite store. CRUD + search + max-500 enforcement |
 | `PasteService` | `Core/Services/PasteService.swift` | Captures previous app, writes to clipboard, simulates Cmd+V via CGEvent, restores clipboard |
 | `SessionStatsTracker` | `Core/Services/SessionStatsTracker.swift` | Accumulates per-launch stats (requests, tokens, cost) in memory |
+| `AccountViewModel` | `Main/AccountViewModel.swift` | Loads `UsageInfo` from Worker `GET /account/usage`. Opens Stripe Checkout Session or Billing Portal via `NSWorkspace.shared.open(_:)` |
 
 ### Cloudflare Worker
 
 | File | Responsibility |
 |------|----------------|
-| `cloudflare/worker.js` | Receives `/improve` requests from the app. Validates bearer token. Reads `ACTIVE_PROVIDER` and `ACTIVE_MODEL` from environment. Forwards to provider using API key from Cloudflare secrets. Returns normalized response |
-| `cloudflare/wrangler.toml` | Deploy configuration. `ACTIVE_PROVIDER` and `ACTIVE_MODEL` set here as plain vars. Provider API keys and `FLOURISH_PROXY_TOKEN` stored as Cloudflare secrets (not in this file) |
+| `cloudflare/worker.js` | Full rewrite from ADR-015 base. Routes: `POST /improve` (JWT auth + D1 limit enforcement + LLM proxy), `POST /account/create` (idempotent user row creation in D1), `GET /account/usage` (plan + counter + reset date), `POST /billing/checkout` (Stripe Checkout Session), `GET /billing/portal` (Stripe Billing Portal), `POST /stripe/webhook` (subscription sync to D1). JWT verified via Web Crypto HS256. Stripe webhook signature verified via Web Crypto HMAC-SHA256 |
+| `cloudflare/wrangler.toml` | Deploy configuration. D1 binding: `flourish-users`. Cloudflare secrets: `SUPABASE_JWT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_MONTHLY_PRICE_ID`, `STRIPE_YEARLY_PRICE_ID`, provider API keys |
 
 ### Models
 
@@ -130,10 +142,10 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
 
 | Component | File | Responsibility |
 |-----------|------|----------------|
-| `FlourishColors` | `DesignSystem/FlourishColors.swift` | All `Color` values as hex extensions |
-| `FlourishTypography` | `DesignSystem/FlourishTypography.swift` | SF Pro font scale as `Font` extensions |
-| `FlourishSpacing` | `DesignSystem/FlourishSpacing.swift` | `FS` namespace with spacing, radius, and layout constants |
-| `FlourishLogoView` | `DesignSystem/FlourishLogoView.swift` | Custom SwiftUI `Shape` rendering the Flourish 'f' logo |
+| `flourishColors` | `DesignSystem/flourishColors.swift` | All `Color` values as hex extensions |
+| `flourishTypography` | `DesignSystem/flourishTypography.swift` | SF Pro font scale as `Font` extensions |
+| `flourishSpacing` | `DesignSystem/flourishSpacing.swift` | `FS` namespace with spacing, radius, and layout constants |
+| `flourishLogoView` | `DesignSystem/flourishLogoView.swift` | Custom SwiftUI `Shape` rendering the flourish 'f' logo |
 
 ---
 
@@ -143,8 +155,10 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
 
 | Holder | Type | Scope | Persistence |
 |--------|------|-------|-------------|
+| `AuthService` | `@MainActor ObservableObject` | App-wide singleton | Keychain (via supabase-swift) |
 | `OverlayViewModel` | `@Published ObservableObject` | Overlay window | UserDefaults (draft only) |
 | `MainWindowState` | `@Published ObservableObject` | Main window | Session-only |
+| `AccountViewModel` | `@Published ObservableObject` | Account section | Session-only (fetched from Worker) |
 | `Defaults[.*]` | Type-safe `Defaults.Key` | App-wide | UserDefaults |
 | `SessionStatsTracker` | `@Published ObservableObject` | App-wide singleton | Session-only |
 | `HistoryStore` | GRDB SQLite | App-wide singleton | SQLite on disk |
@@ -162,11 +176,32 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
 
 ---
 
+## Data Flow — App Launch with Auth
+
+```
+1.  flourishApp launches → AppDelegate.applicationDidFinishLaunching
+        ↓
+2.  AuthService.shared.startObservingAuthState()   [starts async stream]
+        ↓
+3.  authStateChanges emits first event:
+        ├── .signedOut / no session → SignInWindowController.shared.show()
+        │       User completes sign-in → authStateChanges emits .signedIn
+        │           → SignInWindowController.shared.hide()
+        │           → AuthService.shared.ensureAccountExists()
+        │               → POST /account/create (idempotent)
+        │           → ensureAccessibilityPermission()
+        └── .signedIn (session exists) → normal startup continues
+                → MenuBarManager.shared.setup()
+                → (overlay hotkey already registered)
+```
+
+---
+
 ## Data Flow — Overlay Improvement
 
 ```
 1.  User presses Ctrl+Space
-        ↓
+        ↓ [auth check — no-op if not signed in]
 2.  AppDelegate hotkey handler → OverlayWindowController.shared.toggle()
         ↓
 3.  PasteService.shared.capturePreviousApp()       [critical timing]
@@ -183,10 +218,13 @@ Complete component map, layer diagram, and data flow for the Flourish macOS appl
         ↓
 9.  OverlayWindowController.runLLM()  [async Task]
         ├── BasePrompt.build(guidelines:targetPlatform:) → systemPrompt
-        ├── FlourishProxyService()
+        ├── flourishProxyService()
         │       .improvePrompt(text, systemPrompt, model: "")
-        │       → POST https://<FLOURISH_PROXY_URL>/improve
+        │       → await AuthService.shared.currentAccessToken()  [JWT]
+        │       → POST https://<flourish_PROXY_URL>/improve
+        │           Authorization: Bearer <jwt>
         │       ← LLMResponse { text, tokensIn, tokensOut, model }
+        │       [if 429 monthly_limit_reached → LLMError.monthlyLimitReached]
         ├── PasteService.shared.paste(text: response.text)
         │       ├── NSPasteboard.general.setString(improved)
         │       ├── NSWorkspace.shared.frontmostApplication.activate()
@@ -224,8 +262,17 @@ See [ADR-007: Singleton Window Controllers](../adr/007-singleton-window-controll
 
 ```
 AppDelegate
-  └── OverlayWindowController.shared (toggle)
+  ├── AuthService.shared (startObservingAuthState)
+  ├── SignInWindowController.shared (show on unauthenticated)
+  ├── OverlayWindowController.shared (toggle, auth-gated)
   └── MenuBarManager.shared (setup)
+
+AuthService
+  └── SupabaseClient (supabase-swift SDK)
+      └── Keychain via KeychainLocalStorage(service: "flourish")
+
+SignInWindowController
+  └── SignInView → AuthService.shared (signIn / signUp / signInWithGoogle)
 
 OverlayWindowController
   ├── OverlayPanel
@@ -234,13 +281,19 @@ OverlayWindowController
   ├── PasteService.shared
   ├── HistoryStore.shared
   ├── SessionStatsTracker.shared
-  └── FlourishProxyService (instantiated per call)
+  └── flourishProxyService (instantiated per call)
+      └── AuthService.shared.currentAccessToken()
 
 MenuBarManager
-  └── MainWindowController (lazy instance, created on first open)
+  ├── AuthService.shared (auth check before opening windows)
+  ├── SignInWindowController.shared (fallback if unauthenticated)
+  └── MainWindowController.shared
 
 MainWindowController
-  └── MainWindowView → HomeView / ProfilesView / SettingsPanelView
+  └── MainWindowView → HomeView / ProfilesView / SettingsPanelView / AccountView
+
+AccountView
+  └── AccountViewModel → Worker /account/usage, /billing/checkout, /billing/portal
 ```
 
 ---
@@ -253,3 +306,7 @@ MainWindowController
 - [Overlay Focus Model](../explanation/overlay-focus-model.md)
 - [Prompt Improvement Workflow](../explanation/prompt-improvement-workflow.md)
 - [ADR-015: Cloudflare Worker Proxy](../adr/015-cloudflare-worker-proxy.md)
+- [ADR-023: Supabase Auth Strategy](../adr/023-supabase-auth-strategy.md)
+- [ADR-024: Auth-gated UI](../adr/024-auth-gated-ui.md)
+- [ADR-025: Cloudflare D1 Usage Tracking](../adr/025-cloudflare-d1-usage-tracking.md)
+- [ADR-026: Stripe Billing via Worker](../adr/026-stripe-billing-via-worker.md)

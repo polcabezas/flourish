@@ -59,7 +59,7 @@ private struct ShortcutSection: View {
         VStack(alignment: .leading, spacing: FS.md) {
             PanelSectionLabel("Shortcut")
 
-            KeyboardShortcuts.Recorder("Open Flourish", name: .openOverlay)
+            KeyboardShortcuts.Recorder("Open flourish", name: .openOverlay)
                 .font(.flourishBody)
 
             Text("Click the field and press your desired key combination. Default: ⌃ Space")
@@ -95,7 +95,7 @@ private struct GeneralSection: View {
             PanelSectionLabel("General")
 
             LaunchAtLogin.Toggle {
-                Text("Launch Flourish at login")
+                Text("Launch flourish at login")
                     .font(.flourishBody)
             }
             .onChange(of: launchAtLogin) { newValue in
@@ -103,7 +103,7 @@ private struct GeneralSection: View {
             }
             .pointerCursor()
 
-            Text("Flourish runs quietly in the menu bar and is always ready when you need it.")
+            Text("flourish runs quietly in the menu bar and is always ready when you need it.")
                 .font(.flourishMeta)
                 .foregroundColor(.flourishTextSecondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -122,8 +122,8 @@ private struct GeneralSection: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 8) {
-                    FlourishLogoSymbol(size: 20, color: .flourishAccent)
-                    Text("Flourish")
+                    flourishLogoSymbol(size: 20, color: .flourishAccent)
+                    Text("flourish")
                         .font(.flourishBody)
                         .fontWeight(.medium)
                 }

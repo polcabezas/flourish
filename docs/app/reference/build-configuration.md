@@ -19,8 +19,26 @@ The `project.yml` file is the **source of truth** for the Xcode project. The `.x
 | Code signing identity | `-` (ad-hoc) |
 | Code signing required | `YES` |
 | Hardened runtime | `NO` |
-| Entitlements file | `Flourish/Flourish.entitlements` |
+| Entitlements file | `flourish/flourish.entitlements` |
 | DerivedData | Pinned to `./build/DerivedData` via `WorkspaceSettings.xcsettings` |
+
+### Explicit scheme declaration
+
+`project.yml` declares the Xcode scheme explicitly so `make generate` produces `flourish.xcscheme` immediately — without requiring an Xcode open step:
+
+```yaml
+schemes:
+  flourish:
+    build:
+      targets:
+        flourish: all
+    run:
+      config: Debug
+    archive:
+      config: Release
+```
+
+See [ADR-022](../adr/022-lowercase-project-name.md) for why the scheme name is lowercase.
 
 ### SPM dependencies declared in `project.yml`
 
@@ -44,15 +62,15 @@ The `project.yml` file is the **source of truth** for the Xcode project. The `.x
 
 | Target | Command | Effect |
 |--------|---------|--------|
-| `make generate` | `xcodegen generate` | Generates `Flourish.xcodeproj` from `project.yml` |
-| `make open` | `make generate && open Flourish.xcodeproj` | Generates project and opens in Xcode |
-| `make clean` | `rm -rf Flourish.xcodeproj build/` | Removes generated project and all build artifacts |
+| `make generate` | `xcodegen generate` | Generates `flourish.xcodeproj` from `project.yml` |
+| `make open` | `make generate && open flourish.xcodeproj` | Generates project and opens in Xcode |
+| `make clean` | `rm -rf flourish.xcodeproj build/` | Removes generated project and all build artifacts |
 
 ---
 
-## Entitlements (`Flourish.entitlements`)
+## Entitlements (`flourish.entitlements`)
 
-Flourish uses minimal entitlements — **no App Sandbox**.
+flourish uses minimal entitlements — **no App Sandbox**.
 
 | Entitlement | Value | Reason |
 |-------------|-------|--------|
@@ -78,19 +96,19 @@ See [ADR-008: Ad-hoc Signing](../adr/008-adhoc-signing.md) for rationale.
 
 ## Secrets.xcconfig
 
-**File:** `Flourish/Config/Secrets.xcconfig` (gitignored)  
-**Template:** `Flourish/Config/Secrets.xcconfig.example` (committed, safe — no real values)
+**File:** `flourish/Config/Secrets.xcconfig` (gitignored)  
+**Template:** `flourish/Config/Secrets.xcconfig.example` (committed, safe — no real values)
 
 This file supplies the proxy connection details that are injected into `Info.plist` at build time. It must exist before building. Copy the example and fill in the values (obtain from the team):
 
 ```
-FLOURISH_PROXY_URL   = flourish-proxy.yoursubdomain.workers.dev
-FLOURISH_PROXY_TOKEN = <proxy bearer token>
+flourish_PROXY_URL   = flourish-proxy.yoursubdomain.workers.dev
+flourish_PROXY_TOKEN = <proxy bearer token>
 ```
 
-**Important:** `FLOURISH_PROXY_URL` must be the hostname only — no `https://` prefix. xcconfig files treat `//` as a line comment, which would silently truncate any URL with a scheme.
+**Important:** `flourish_PROXY_URL` must be the hostname only — no `https://` prefix. xcconfig files treat `//` as a line comment, which would silently truncate any URL with a scheme.
 
-`project.yml` maps `Secrets.xcconfig` via the `configFiles` key, making both variables available as build settings that are substituted into `Info.plist` entries `FlourishProxyURL` and `FlourishProxyToken`.
+`project.yml` maps `Secrets.xcconfig` via the `configFiles` key, making both variables available as build settings that are substituted into `Info.plist` entries `flourishProxyURL` and `flourishProxyToken`.
 
 ---
 
@@ -105,19 +123,19 @@ FLOURISH_PROXY_TOKEN = <proxy bearer token>
 | `LSUIElement` | `YES` | Launches as a menu bar agent (no Dock icon) |
 | `NSAccessibilityUsageDescription` | String | Shown when requesting Accessibility permission |
 | `NSAppleEventsUsageDescription` | String | Shown when interacting with other apps |
-| `FlourishProxyURL` | `$(FLOURISH_PROXY_URL)` | Proxy hostname injected from `Secrets.xcconfig` |
-| `FlourishProxyToken` | `$(FLOURISH_PROXY_TOKEN)` | Proxy bearer token injected from `Secrets.xcconfig` |
+| `flourishProxyURL` | `$(flourish_PROXY_URL)` | Proxy hostname injected from `Secrets.xcconfig` |
+| `flourishProxyToken` | `$(flourish_PROXY_TOKEN)` | Proxy bearer token injected from `Secrets.xcconfig` |
 
 ---
 
 ## DerivedData Location
 
-DerivedData is pinned to `./build/DerivedData` via `Flourish.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings`:
+DerivedData is pinned to `./build/DerivedData` via `flourish.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings`:
 
 ```xml
 <key>DerivedDataLocationStyle</key>
 <string>WorkspaceRelativePath</string>
-<key>CustomDerivedDataLocation</key>
+<key>DerivedDataCustomLocation</key>
 <string>build/DerivedData</string>
 ```
 
@@ -133,7 +151,7 @@ Uses `create-dmg` to build a distributable disk image:
 ./build-dmg.sh
 ```
 
-The script expects the built `.app` at `build/DerivedData/Build/Products/Release/Flourish.app` and produces a `.dmg` in the project root or a `dist/` folder.
+The script expects the built `.app` at `build/DerivedData/Build/Products/Release/flourish.app` and produces a `.dmg` in the project root or a `dist/` folder.
 
 ---
 

@@ -3,11 +3,18 @@ main = "worker.js"
 compatibility_date = "2024-01-01"
 
 # Deploy: wrangler deploy
-# Set secrets (never committed): wrangler secret put PROXY_TOKEN
-#                                 wrangler secret put OPENROUTER_API_KEY
-#                                 wrangler secret put GROQ_API_KEY
 #
-# Set plain vars (provider/model switch — safe to commit or set in dashboard):
+# Set secrets (never committed):
+#   wrangler secret put SUPABASE_JWT_SECRET        # Supabase → Settings → API → JWT Secret
+#   wrangler secret put SUPABASE_SERVICE_ROLE_KEY  # Supabase → Settings → API → service_role
+#   wrangler secret put OPENROUTER_API_KEY
+#   wrangler secret put GROQ_API_KEY
+#   wrangler secret put STRIPE_SECRET_KEY
+#   wrangler secret put STRIPE_WEBHOOK_SECRET
+#   wrangler secret put STRIPE_PRO_PRICE_ID_MONTHLY
+#   wrangler secret put STRIPE_PRO_PRICE_ID_YEARLY
+
 [vars]
 ACTIVE_PROVIDER = "groq"
 ACTIVE_MODEL    = "llama-3.1-8b-instant"
+SUPABASE_URL    = "https://uletheacbernvtavaisb.supabase.co"

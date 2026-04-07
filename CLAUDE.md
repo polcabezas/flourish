@@ -5,24 +5,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build Commands
 
 ```bash
-make generate    # Generate Flourish.xcodeproj from project.yml (run after changing project.yml)
+make generate    # Generate flourish.xcodeproj from project.yml (run after changing project.yml)
 make open        # Generate project and open in Xcode
 make clean       # Remove .xcodeproj and build/ artifacts
 ```
 
-Open `Flourish.xcodeproj` in Xcode, select the Flourish scheme with "My Mac" destination, and press ⌘R to build and run. There are no automated tests — testing is done manually by running the app.
+Open `flourish.xcodeproj` in Xcode, select the flourish scheme with "My Mac" destination, and press ⌘R to build and run. There are no automated tests — testing is done manually by running the app.
 
 ## Secrets Setup
 
-The app requires `Flourish/Config/Secrets.xcconfig` (gitignored). Copy from `Secrets.xcconfig.template` and fill in:
-- `FLOURISH_PROXY_URL` — Cloudflare Worker URL
-- `FLOURISH_PROXY_TOKEN` — Bearer token for the proxy
+The app requires `flourish/Config/Secrets.xcconfig` (gitignored). Copy from `Secrets.xcconfig.template` and fill in:
+- `flourish_PROXY_URL` — Cloudflare Worker URL
+- `flourish_PROXY_TOKEN` — Bearer token for the proxy
 
-These are injected into `Info.plist` and read at runtime by `FlourishProxyService`.
+These are injected into `Info.plist` and read at runtime by `flourishProxyService`.
 
 ## Architecture
 
-Flourish is a macOS menu bar app (no App Sandbox, `LSUIElement=YES`) that improves text prompts via an LLM and pastes the result back into the user's active app.
+flourish is a macOS menu bar app (no App Sandbox, `LSUIElement=YES`) that improves text prompts via an LLM and pastes the result back into the user's active app.
 
 ### Layers
 
@@ -39,17 +39,17 @@ Cloudflare Worker Proxy → External LLM APIs (OpenRouter, Groq)
 ### Key Components
 
 **Entry Points**
-- `FlourishApp.swift` — `@main`, wires `AppDelegate`
+- `flourishApp.swift` — `@main`, wires `AppDelegate`
 - `AppDelegate.swift` — registers Ctrl+Space global hotkey, requests accessibility permission, initializes `MenuBarManager`
 
 **Window Controllers (all singletons via `static let shared`)**
-- `OverlayWindowController` — orchestrates the full prompt-improvement flow: captures previous app, shows the overlay panel, calls `FlourishProxyService`, invokes `PasteService`, writes to `HistoryStore`
+- `OverlayWindowController` — orchestrates the full prompt-improvement flow: captures previous app, shows the overlay panel, calls `flourishProxyService`, invokes `PasteService`, writes to `HistoryStore`
 - `MainWindowController` — full sidebar app window (Home / Profiles / Settings)
 - `MenuBarManager` — status bar icon + context menu
 - `LoaderWindowController` — bottom-center 3-dot animation shown during LLM calls
 
 **Core Services**
-- `FlourishProxyService` — implements `LLMService` protocol, POSTs to `/improve` on the Cloudflare Worker with a Bearer token; the worker holds real API keys
+- `flourishProxyService` — implements `LLMService` protocol, POSTs to `/improve` on the Cloudflare Worker with a Bearer token; the worker holds real API keys
 - `HistoryStore` — GRDB SQLite singleton, max 500 entries
 - `PasteService` — captures frontmost app before overlay opens, writes to clipboard, simulates Cmd+V via `CGEvent`, restores original clipboard
 - `KeychainService` — secure API key storage (currently bypassed by proxy pattern)
@@ -70,7 +70,7 @@ Cloudflare Worker Proxy → External LLM APIs (OpenRouter, Groq)
 4. User types, selects profile, selects target platform, presses Return
 5. `LoaderWindowController.show()`
 6. `BasePrompt.build(guidelines:targetPlatform:)` → system prompt (appends platform-specific formatting instruction when non-generic)
-7. `FlourishProxyService.improvePrompt()` → POST to Cloudflare Worker
+7. `flourishProxyService.improvePrompt()` → POST to Cloudflare Worker
 8. `PasteService.pasteText(improved)` → activate previous app + CGEvent Cmd+V
 9. `HistoryStore.insert(entry)` + stats update
 10. `LoaderWindowController.hide()`
@@ -87,7 +87,7 @@ func improvePrompt(_ text: String, systemPrompt: String, model: String) async th
 Colors: background `#F8F7F4`, accent `#5B7B4E` (forest green), button `#5B7B4E` (same as accent)
 Spacing: 4pt base unit (xs=4, sm=8, md=12, lg=16, xl=20, xxl=24)
 Font: SF Pro Regular (weight 400)
-Constants live in `Flourish/DesignSystem/`
+Constants live in `flourish/DesignSystem/`
 
 ### Key Constraints
 

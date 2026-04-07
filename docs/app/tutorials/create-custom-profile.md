@@ -1,11 +1,11 @@
 # Create a Custom Profile
 
-**Goal:** Write a custom guideline profile that makes Flourish improve prompts in a specific way — and use it from the overlay.
+**Goal:** Write a custom guideline profile that makes flourish improve prompts in a specific way — and use it from the overlay.
 
 **Time:** ~10 minutes
 
 **Prerequisites:**
-- Flourish running with a provider configured (see [Add Your First Provider](add-your-first-provider.md))
+- flourish running with a provider configured (see [Add Your First Provider](add-your-first-provider.md))
 
 ---
 
@@ -13,7 +13,7 @@
 
 A guideline profile is a named set of instructions injected into the system prompt when you improve a prompt. Built-in profiles like "Clearer" or "Developer" have pre-written instructions. Custom profiles let you define your own instructions for any use case.
 
-The system prompt template has a `{guidelines}` placeholder. When you select a profile and submit, Flourish calls `BasePrompt.build(profile:)`, which substitutes `{guidelines}` with the profile's instruction text.
+The system prompt template has a `{guidelines}` placeholder. When you select a profile and submit, flourish calls `BasePrompt.build(profile:)`, which substitutes `{guidelines}` with the profile's instruction text.
 
 ---
 

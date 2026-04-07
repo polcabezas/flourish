@@ -1,10 +1,10 @@
-name: Flourish
+name: flourish
 
 # Maps build configurations to xcconfig files.
-# Secrets.xcconfig is gitignored — copy from Flourish/Config/Secrets.xcconfig.example.
+# Secrets.xcconfig is gitignored — copy from flourish/Config/Secrets.xcconfig.example.
 configFiles:
-  Debug:   Flourish/Config/Secrets.xcconfig
-  Release: Flourish/Config/Secrets.xcconfig
+  Debug:   flourish/Config/Secrets.xcconfig
+  Release: flourish/Config/Secrets.xcconfig
 
 options:
   bundleIdPrefix: com.personal
@@ -19,9 +19,9 @@ settings:
     SWIFT_VERSION: "5.9"
     MACOSX_DEPLOYMENT_TARGET: "13.0"
     PRODUCT_BUNDLE_IDENTIFIER: com.personal.flourish
-    PRODUCT_NAME: Flourish
-    INFOPLIST_FILE: Flourish/Info.plist
-    CODE_SIGN_ENTITLEMENTS: Flourish/Flourish.entitlements
+    PRODUCT_NAME: flourish
+    INFOPLIST_FILE: flourish/Info.plist
+    CODE_SIGN_ENTITLEMENTS: flourish/flourish.entitlements
     CODE_SIGN_STYLE: Manual
     CODE_SIGNING_REQUIRED: "YES"
     CODE_SIGN_IDENTITY: "-"
@@ -43,18 +43,31 @@ packages:
   GRDB:
     url: https://github.com/groue/GRDB.swift
     from: "6.0.0"
+  supabase-swift:
+    url: https://github.com/supabase/supabase-swift
+    from: "2.0.0"
+
+schemes:
+  flourish:
+    build:
+      targets:
+        flourish: all
+    run:
+      config: Debug
+    archive:
+      config: Release
 
 targets:
-  Flourish:
+  flourish:
     type: application
     platform: macOS
     sources:
-      - path: Flourish
+      - path: flourish
         excludes:
           - "Info.plist"
-          - "Flourish.entitlements"
+          - "flourish.entitlements"
     resources:
-      - path: Flourish/Assets.xcassets
+      - path: flourish/Assets.xcassets
     dependencies:
       - package: KeyboardShortcuts
         product: KeyboardShortcuts
@@ -64,7 +77,9 @@ targets:
         product: LaunchAtLogin
       - package: GRDB
         product: GRDB
+      - package: supabase-swift
+        product: Supabase
     settings:
       base:
-        INFOPLIST_FILE: Flourish/Info.plist
-        CODE_SIGN_ENTITLEMENTS: Flourish/Flourish.entitlements
+        INFOPLIST_FILE: flourish/Info.plist
+        CODE_SIGN_ENTITLEMENTS: flourish/flourish.entitlements

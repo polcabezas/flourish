@@ -6,7 +6,9 @@ import SwiftUI
 
 final class MainWindowController: NSWindowController {
 
-    convenience init() {
+    static let shared = MainWindowController()
+
+    private convenience init() {
         let window = NSWindow(
             contentRect: NSRect(
                 x: 0, y: 0,
@@ -17,7 +19,7 @@ final class MainWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "Flourish"
+        window.title = "flourish"
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.minSize = NSSize(width: FS.mainWindowWidth, height: FS.mainWindowHeight)

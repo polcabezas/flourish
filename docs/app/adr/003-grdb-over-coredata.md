@@ -13,7 +13,7 @@ Use GRDB.swift (a Swift SQLite ORM) for the prompt history store instead of Core
 
 ## Context
 
-Flourish needs to persist a history of prompt-improvement events with:
+flourish needs to persist a history of prompt-improvement events with:
 - A fixed schema (9 columns, no relationships).
 - Full-text search on two text columns.
 - Chronological sorting with range filtering.

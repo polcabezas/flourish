@@ -1,6 +1,6 @@
 # Overlay Focus Model
 
-Why the Flourish overlay uses a non-activating `NSPanel`, and what this means for the user experience and implementation.
+Why the flourish overlay uses a non-activating `NSPanel`, and what this means for the user experience and implementation.
 
 ---
 
@@ -10,12 +10,12 @@ The overlay's entire value proposition depends on a single behavioral requiremen
 
 Consider the workflow:
 1. User is typing a prompt in ChatGPT's web interface.
-2. User presses Ctrl+Space to invoke Flourish.
+2. User presses Ctrl+Space to invoke flourish.
 3. User types a refined version of the prompt in the overlay.
 4. User presses Return.
 5. The improved text is pasted into ChatGPT.
 
-If step 2 caused macOS to switch the active application to Flourish, step 5 would paste into Flourish (or nowhere useful) rather than into ChatGPT. The entire workflow breaks.
+If step 2 caused macOS to switch the active application to flourish, step 5 would paste into flourish (or nowhere useful) rather than into ChatGPT. The entire workflow breaks.
 
 ---
 
@@ -27,7 +27,7 @@ macOS's `NSPanel` class, unlike `NSWindow`, supports the `.nonactivatingPanel` s
 - **Does not change the frontmost application** when it becomes key
 - **Does not appear in the Cmd+Tab application switcher**
 
-This is precisely the behavior Flourish needs. The overlay receives keyboard input (so the user can type) while the "frontmost app" from macOS's perspective remains whatever it was before the hotkey was pressed.
+This is precisely the behavior flourish needs. The overlay receives keyboard input (so the user can type) while the "frontmost app" from macOS's perspective remains whatever it was before the hotkey was pressed.
 
 ```swift
 class OverlayPanel: NSPanel {
@@ -115,7 +115,7 @@ The panel's `level` is set to `.floating`. This ensures the overlay appears abov
 
 The paste-back mechanism uses `CGEvent` to post a synthetic Cmd+V keystroke. This requires the **Accessibility permission** (`AXIsProcessTrusted`). Without it, `CGEvent` posting is silently blocked.
 
-Flourish requests this permission proactively at launch via `AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt: true])`. If permission is denied and the user tries to improve a prompt, the app shows an NSAlert explaining how to grant it in System Settings → Privacy & Security → Accessibility.
+flourish requests this permission proactively at launch via `AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt: true])`. If permission is denied and the user tries to improve a prompt, the app shows an NSAlert explaining how to grant it in System Settings → Privacy & Security → Accessibility.
 
 ---
 

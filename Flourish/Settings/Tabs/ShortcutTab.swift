@@ -9,7 +9,7 @@ struct ShortcutTab: View {
             VStack(alignment: .leading, spacing: FS.md) {
                 SectionLabel("Global Keyboard Shortcut")
 
-                KeyboardShortcuts.Recorder("Open Flourish", name: .openOverlay)
+                KeyboardShortcuts.Recorder("Open flourish", name: .openOverlay)
                     .font(.flourishBody)
 
                 Text("Click the field above and press your desired key combination.\nDefault: ⌃ Space (Control + Space)")

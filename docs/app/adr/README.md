@@ -1,6 +1,6 @@
 # Architectural Decision Records
 
-A chronological, immutable log of architectural decisions made during the development of Flourish.
+A chronological, immutable log of architectural decisions made during the development of flourish.
 
 ADRs are **never modified after acceptance**. If a decision is reversed or superseded, a new ADR is added that references the original.
 
@@ -31,6 +31,16 @@ ADRs are **never modified after acceptance**. If a decision is reversed or super
 | [019](019-ai-generated-profiles.md) | AI-generated guideline profiles via `ProfileGeneratorService` | Accepted |
 | [020](020-slim-base-prompt-invariants-only.md) | Slim base prompt — universal invariants only | Accepted |
 | [021](021-remove-base-prompt-editor.md) | Remove base prompt editor from Settings UI | Accepted |
+| [022](022-lowercase-project-name.md) | Lowercase project name for all technical identifiers | Accepted |
+| [023](023-supabase-auth-strategy.md) | Supabase Auth as the authentication provider | Accepted |
+| [024](024-auth-gated-ui.md) | Auth-gated UI — sign-in panel shown on launch and sign-out | Accepted |
+| [025](025-cloudflare-d1-usage-tracking.md) | Cloudflare D1 for usage tracking | Superseded by ADR-027 |
+| [026](026-stripe-billing-via-worker.md) | Stripe billing logic in the Cloudflare Worker | Accepted |
+| [027](027-supabase-postgres-over-d1.md) | Supabase PostgreSQL over Cloudflare D1 for usage storage | Accepted |
+| [028](028-es256-jwt-verification.md) | ES256 JWT verification with JWKS caching | Accepted |
+| [029](029-supabase-user-lifecycle-triggers.md) | Supabase database triggers for user lifecycle | Accepted |
+| [030](030-plans-billing-ui.md) | Plans and Billing UI — comparison grid in AccountView | Accepted |
+| [031](031-account-usage-realtime-refresh.md) | Event-driven usage refresh in AccountViewModel | Accepted |
 
 ---
 

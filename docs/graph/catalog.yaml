@@ -1,17 +1,17 @@
 ---
-# Flourish Documentation Graph Catalog
+# flourish Documentation Graph Catalog
 # Lists major documentation hubs and their canonical paths.
 
 hubs:
   - id: global-index
     path: docs/index.md
-    title: Flourish Documentation
-    description: Global entry point for all Flourish documentation
+    title: flourish Documentation
+    description: Global entry point for all flourish documentation
 
   - id: app-index
     path: docs/app/index.md
     title: App Documentation
-    description: All documentation for the Flourish macOS application
+    description: All documentation for the flourish macOS application
 
   - id: app-nav-map
     path: docs/app/NAVIGATION_MAP.md
@@ -21,7 +21,7 @@ hubs:
   - id: adr-index
     path: docs/app/adr/README.md
     title: ADR Index
-    description: Index of all 19 Architectural Decision Records
+    description: Index of all 26 Architectural Decision Records
 
   - id: security
     path: docs/platform/security.md
@@ -30,8 +30,8 @@ hubs:
 
   - id: book-flourish
     path: docs/books/flourish-app.md
-    title: Book — Flourish App
-    description: Curated reading paths for four personas
+    title: Book — flourish App
+    description: Curated reading paths for six personas
 
 docs:
   # Tutorials
@@ -255,27 +255,6 @@ docs:
     component: app
 
   - id: adr-018
-    path: docs/app/adr/018-ai-generated-profiles.md
-    type: adr
-    component: app
-
-  # Changelog
-  - id: changelog-v1
-    path: docs/changelog/v1.0.0.md
-    type: changelog
-    component: platform
-
-  - id: changelog-v1-1
-    path: docs/changelog/v1.1.0.md
-    type: changelog
-    component: platform
-
-  - id: adr-017
-    path: docs/app/adr/017-nshosting-controller-for-overlay.md
-    type: adr
-    component: app
-
-  - id: adr-018
     path: docs/app/adr/018-outcome-oriented-profiles.md
     type: adr
     component: app
@@ -294,3 +273,55 @@ docs:
     path: docs/app/adr/021-remove-base-prompt-editor.md
     type: adr
     component: app
+
+  - id: adr-022
+    path: docs/app/adr/022-lowercase-project-name.md
+    type: adr
+    component: app
+
+  - id: adr-023
+    path: docs/app/adr/023-supabase-auth-strategy.md
+    type: adr
+    component: app
+
+  - id: adr-024
+    path: docs/app/adr/024-auth-gated-ui.md
+    type: adr
+    component: app
+
+  - id: adr-025
+    path: docs/app/adr/025-cloudflare-d1-usage-tracking.md
+    type: adr
+    component: app
+
+  - id: adr-026
+    path: docs/app/adr/026-stripe-billing-via-worker.md
+    type: adr
+    component: app
+
+  # How-To (account)
+  - id: howto-manage-account
+    path: docs/app/how-to/manage-account.md
+    type: how-to
+    component: app
+
+  # Changelog
+  - id: changelog-v1
+    path: docs/changelog/v1.0.0.md
+    type: changelog
+    component: platform
+
+  - id: changelog-v1-1
+    path: docs/changelog/v1.1.0.md
+    type: changelog
+    component: platform
+
+  - id: changelog-v1-2
+    path: docs/changelog/v1.2.0.md
+    type: changelog
+    component: platform
+
+  - id: changelog-v1-2-1
+    path: docs/changelog/v1.2.1.md
+    type: changelog
+    component: platform

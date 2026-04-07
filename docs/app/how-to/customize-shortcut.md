@@ -1,6 +1,6 @@
 # Customize the Keyboard Shortcut
 
-How to change the global hotkey that opens the Flourish overlay.
+How to change the global hotkey that opens the flourish overlay.
 
 ---
 

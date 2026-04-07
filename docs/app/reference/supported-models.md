@@ -1,6 +1,6 @@
 # Supported Models Reference
 
-The LLM model used by Flourish is configured in the Cloudflare Worker via `ACTIVE_MODEL` in `cloudflare/wrangler.toml`. End users do not select models — this is a founder/developer operation.
+The LLM model used by flourish is configured in the Cloudflare Worker via `ACTIVE_MODEL` in `cloudflare/wrangler.toml`. End users do not select models — this is a founder/developer operation.
 
 This page lists commonly used models for reference when choosing a value for `ACTIVE_MODEL`.
 
@@ -46,7 +46,7 @@ For the full model list, see [console.groq.com/docs/models](https://console.groq
 
 ## Cost Calculation
 
-For each LLM response, Flourish calculates:
+For each LLM response, flourish calculates:
 
 ```
 cost = (tokensIn  / 1_000_000) × pricePerMTokenIn

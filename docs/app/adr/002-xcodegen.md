@@ -7,7 +7,7 @@
 
 ## Decision
 
-Use XcodeGen to generate the Xcode project from `project.yml` at development time. Do not commit `Flourish.xcodeproj` to the repository.
+Use XcodeGen to generate the Xcode project from `project.yml` at development time. Do not commit `flourish.xcodeproj` to the repository.
 
 ---
 
@@ -29,10 +29,10 @@ Xcode project files (`.xcodeproj/project.pbxproj`) are notoriously difficult to 
 Standard approach for most Swift projects. Simple for solo development. Merge conflicts become painful with any team or complex feature branching. Rejected due to cognitive overhead.
 
 ### Swift Package Manager only (no Xcode project)
-Swift Package Manager can build macOS apps, but it lacks support for configuring entitlements, Info.plist keys, custom build phases, and macOS-specific settings that Flourish needs. Rejected.
+Swift Package Manager can build macOS apps, but it lacks support for configuring entitlements, Info.plist keys, custom build phases, and macOS-specific settings that flourish needs. Rejected.
 
 ### Tuist
-A more feature-rich project generator. Heavier dependency; XcodeGen is sufficient for Flourish's needs. Rejected in favor of the simpler tool.
+A more feature-rich project generator. Heavier dependency; XcodeGen is sufficient for flourish's needs. Rejected in favor of the simpler tool.
 
 ---
 

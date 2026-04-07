@@ -9,7 +9,7 @@ How to generate the Xcode project, build a release binary, and package a distrib
 - Xcode 15+
 - XcodeGen: `brew install xcodegen`
 - `create-dmg` (for DMG packaging): `brew install create-dmg`
-- `Flourish/Config/Secrets.xcconfig` present and filled in (see below)
+- `flourish/Config/Secrets.xcconfig` present and filled in (see below)
 
 ---
 
@@ -18,17 +18,17 @@ How to generate the Xcode project, build a release binary, and package a distrib
 The app reads proxy connection details from `Secrets.xcconfig`, which is gitignored. Before building for the first time:
 
 ```bash
-cp Flourish/Config/Secrets.xcconfig.example Flourish/Config/Secrets.xcconfig
+cp flourish/Config/Secrets.xcconfig.example flourish/Config/Secrets.xcconfig
 ```
 
 Open `Secrets.xcconfig` and fill in the two values (obtain them from the team):
 
 ```
-FLOURISH_PROXY_URL   = flourish-proxy.yoursubdomain.workers.dev
-FLOURISH_PROXY_TOKEN = <proxy bearer token>
+flourish_PROXY_URL   = flourish-proxy.yoursubdomain.workers.dev
+flourish_PROXY_TOKEN = <proxy bearer token>
 ```
 
-`FLOURISH_PROXY_URL` must be the hostname only — no `https://` prefix (xcconfig treats `//` as a comment).
+`flourish_PROXY_URL` must be the hostname only — no `https://` prefix (xcconfig treats `//` as a comment).
 
 ---
 
@@ -52,8 +52,8 @@ Available make targets:
 
 ## Build from Xcode
 
-1. Open `Flourish.xcodeproj` (or run `make open`).
-2. Select the **Flourish** scheme.
+1. Open `flourish.xcodeproj` (or run `make open`).
+2. Select the **flourish** scheme.
 3. Select **My Mac** as the destination.
 4. Press **Cmd+B** to build, or **Cmd+R** to build and run.
 
@@ -64,8 +64,8 @@ DerivedData is pinned to `./build/DerivedData` via `WorkspaceSettings.xcsettings
 ## Build from the command line
 
 ```bash
-xcodebuild -project Flourish.xcodeproj \
-           -scheme Flourish \
+xcodebuild -project flourish.xcodeproj \
+           -scheme flourish \
            -configuration Release \
            -derivedDataPath build/DerivedData \
            build
@@ -73,7 +73,7 @@ xcodebuild -project Flourish.xcodeproj \
 
 The built app is at:
 ```
-build/DerivedData/Build/Products/Release/Flourish.app
+build/DerivedData/Build/Products/Release/flourish.app
 ```
 
 ---
@@ -91,7 +91,7 @@ The script uses `create-dmg` to produce a distributable `.dmg` file. Inspect `bu
 
 ## Code signing notes
 
-Flourish uses **ad-hoc signing** (identity: `-`). This means:
+flourish uses **ad-hoc signing** (identity: `-`). This means:
 - No Apple developer certificate is required.
 - The app cannot be notarized or submitted to the Mac App Store.
 - macOS Gatekeeper will show a warning on first launch on machines other than the build machine. Users need to right-click → Open to bypass Gatekeeper.

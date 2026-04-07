@@ -1,13 +1,13 @@
-# Flourish
+# flourish
 
 A macOS menu bar app that improves your prompts using an LLM.
 Inspired by WhisprFlow. Built with Swift + SwiftUI + AppKit.
 
 ## How to Build
 
-1. Open `Flourish.xcodeproj` in Xcode 15+
+1. Open `flourish.xcodeproj` in Xcode 15+
 2. Wait for SPM packages to resolve (first launch takes ~30s)
-3. Select the **Flourish** scheme and **My Mac** destination
+3. Select the **flourish** scheme and **My Mac** destination
 4. Press `⌘R` to build and run
 
 No code signing required for personal use.
@@ -21,7 +21,7 @@ No code signing required for personal use.
    - Paste your API key and click **Save**
    - Select a model
 4. In the **Shortcut** tab: verify/change the hotkey (default: `⌃ Space`)
-5. When you first use the hotkey, macOS will ask for **Accessibility** permission — grant it so Flourish can paste results
+5. When you first use the hotkey, macOS will ask for **Accessibility** permission — grant it so flourish can paste results
 
 ## Usage
 
@@ -41,7 +41,7 @@ No code signing required for personal use.
 ## Architecture
 
 ```
-Flourish/
+flourish/
 ├── DesignSystem/        Color, Typography, Spacing tokens
 ├── Core/
 │   ├── Models/          GuidelineProfile, HistoryEntry, LLMProvider, ModelOption

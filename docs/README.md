@@ -1,6 +1,6 @@
-# Flourish Docs
+# flourish Docs
 
-This folder contains all documentation for the Flourish macOS application, organized using the [Diataxis](https://diataxis.fr) framework.
+This folder contains all documentation for the flourish macOS application, organized using the [Diataxis](https://diataxis.fr) framework.
 
 ## Structure
 
@@ -9,7 +9,7 @@ docs/
 ├── index.md              ← Global hub and entry point
 ├── README.md             ← This file
 ├── changelog/            ← User-visible release notes
-├── app/                  ← Flourish macOS app documentation
+├── app/                  ← flourish macOS app documentation
 │   ├── index.md
 │   ├── NAVIGATION_MAP.md
 │   ├── tutorials/        ← Guided, hands-on learning paths

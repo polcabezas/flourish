@@ -50,6 +50,10 @@ Podfile.lock
 # Claude Code memory (local AI assistant state)
 .claude/
 
+# Cloudflare
+cloudflare/.wrangler/cache/
+cloudflare/.wrangler/state/
+
 # Context scratch files
 flourish-context.txt
 

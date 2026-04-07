@@ -442,6 +442,107 @@ edges:
     to: ref-data-models
     rel: reference
 
+  # ADR-027: Supabase PostgreSQL over D1
+  - from: adr-027
+    to: adr-025
+    rel: supersedes
+
+  - from: adr-027
+    to: adr-028
+    rel: see-also
+
+  - from: adr-027
+    to: adr-029
+    rel: see-also
+
+  - from: adr-027
+    to: adr-026
+    rel: see-also
+
+  - from: ref-architecture
+    to: adr-027
+    rel: rationale
+
+  # ADR-028: ES256 JWT verification
+  - from: adr-028
+    to: adr-025
+    rel: see-also
+
+  - from: adr-028
+    to: adr-027
+    rel: see-also
+
+  - from: adr-028
+    to: adr-023
+    rel: rationale
+
+  - from: howto-deploy-worker
+    to: adr-028
+    rel: rationale
+
+  # ADR-029: Supabase user lifecycle triggers
+  - from: adr-029
+    to: adr-027
+    rel: rationale
+
+  - from: adr-029
+    to: adr-023
+    rel: rationale
+
+  - from: adr-029
+    to: adr-026
+    rel: see-also
+
+  - from: howto-manage-account
+    to: adr-029
+    rel: rationale
+
+  # ADR-030: Plans and billing UI
+  - from: adr-030
+    to: adr-026
+    rel: rationale
+
+  - from: adr-030
+    to: adr-027
+    rel: rationale
+
+  - from: adr-030
+    to: adr-023
+    rel: see-also
+
+  - from: adr-030
+    to: adr-028
+    rel: see-also
+
+  - from: adr-030
+    to: ref-architecture
+    rel: reference
+
+  - from: howto-manage-account
+    to: adr-030
+    rel: rationale
+
+  # ADR-031: Event-driven usage refresh
+  - from: adr-031
+    to: adr-025
+    rel: see-also
+
+  - from: adr-031
+    to: adr-027
+    rel: rationale
+
+  - from: adr-031
+    to: adr-010
+    rel: see-also
+
+  - from: adr-031
+    to: adr-026
+    rel: rationale
+
+  - from: howto-manage-account
+    to: adr-031
+    rel: rationale
+
   # Changelog cross-links
   - from: changelog-v1-2-1
     to: adr-026

@@ -2,7 +2,7 @@
 
 Documentation for the flourish macOS application — a menu bar prompt-improvement tool built with Swift, SwiftUI, and AppKit.
 
-flourish v1.1 adds user accounts, authentication (Supabase), per-user usage tracking (Cloudflare D1), and billing (Stripe). All core prompt-improvement functionality is now auth-gated. See [ADR-023](adr/023-supabase-auth-strategy.md) through [ADR-026](adr/026-stripe-billing-via-worker.md) for the architectural decisions behind these features.
+flourish v1.2 adds user accounts, authentication (Supabase), per-user usage tracking (Supabase PostgreSQL), and billing (Stripe). All core prompt-improvement functionality is auth-gated. See [ADR-023](adr/023-supabase-auth-strategy.md) through [ADR-031](adr/031-account-usage-realtime-refresh.md) for the architectural decisions behind these features.
 
 ## Navigation
 

@@ -42,31 +42,31 @@ def paint_stroke(pts, r, color=FG):
             px_prev = (ix, iy)
 
 
-R = 12   # stroke radius
+R = 7   # stroke radius
 
 # ── Shaft: wobbly S-curve ──────────────────────────────────────────────────────
-shaft = cbez((435, 358), (555, 382), (730, 328), (840, 352))
+shaft = cbez((450, 356), (560, 370), (730, 336), (838, 352))
 paint_stroke(shaft, R)
 
 # ── Chevron: two separate arms meeting at the tip (">" shape) ─────────────────
-tip = (940, 352)
+tip = (880, 352)
 
-top = cbez((836, 304), (850, 295), (922, 322), tip)
+top = cbez((838, 324), (848, 318), (868, 334), tip)
 paint_stroke(top, R)
 
-bot = cbez(tip, (922, 382), (850, 409), (836, 400))
+bot = cbez(tip, (868, 370), (848, 386), (838, 380))
 paint_stroke(bot, R)
 
 # ── "Drag to install" caption ─────────────────────────────────────────────────
 try:
-    font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 36)
+    font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 26)
 except Exception:
     font = ImageFont.load_default()
 
 label = "Drag to install"
 bb = draw.textbbox((0, 0), label, font=font)
 lx = (W - (bb[2] - bb[0])) // 2
-draw.text((lx, 352 + 60), label, fill=TEXT, font=font)
+draw.text((lx, 352 + 42), label, fill=TEXT, font=font)
 
 # ── save ──────────────────────────────────────────────────────────────────────
 out_dir = os.path.join(os.path.dirname(__file__), "..", "assets")

@@ -11,10 +11,17 @@ struct SignInView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // ── Logo ──────────────────────────────────────────────
-            flourishLogoView(size: 28, color: .flourishAccent)
-                .padding(.top, 32)
-                .padding(.bottom, 24)
+            // ── Header — sage green banner (mirrors LimitReachedPopupView right panel) ──
+            // .ignoresSafeArea fills behind the transparent title bar so no white gap appears.
+            // The logo is offset by half the title bar height so it appears centered in
+            // the visible green area below the traffic lights.
+            ZStack {
+                Color(hex: "#C8DFC0")
+                flourishWordmarkView(height: 34, color: Color(hex: "#3D6135"))
+                    .offset(y: 14) // half of ~28pt title bar → visually centers logo
+            }
+            .frame(maxWidth: .infinity, minHeight: 100)
+            .ignoresSafeArea(edges: .top)
 
             // ── Form ──────────────────────────────────────────────
             VStack(alignment: .leading, spacing: 12) {
@@ -134,6 +141,7 @@ struct SignInView: View {
                 .disabled(auth.isLoading)
             }
             .padding(.horizontal, 28)
+            .padding(.top, 20)
 
             Spacer(minLength: 28)
         }

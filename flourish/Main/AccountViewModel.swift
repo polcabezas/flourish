@@ -15,7 +15,7 @@ extension Notification.Name {
 struct UsageInfo {
     let plan: String
     let requestsThisMonth: Int
-    let limit: Int
+    let limit: Int?      // nil = unlimited (pro plan)
     let resetAt: String
 }
 
@@ -168,7 +168,7 @@ final class AccountViewModel: ObservableObject {
     private struct UsageResponse: Decodable {
         let plan: String
         let requests_this_month: Int
-        let limit: Int
+        let limit: Int?      // null from worker = unlimited
         let reset_at: String
     }
 

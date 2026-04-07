@@ -5,6 +5,8 @@
 
 ---
 
+> **Note (ADR-034):** The 2,000 improvements/month figure for Pro referenced throughout this ADR has been superseded. Pro is now **unlimited** (`PLAN_LIMITS.pro = null` in the Worker). All copy and UI now reads "Unlimited improvements". See [ADR-034](034-unlimited-pro-plan.md).
+
 ## Decision
 
 The billing section of `AccountView` is replaced with a full **Basic / Pro comparison grid** matching the visual style of standard SaaS pricing pages. A Monthly / Annual billing period toggle controls displayed price and the Stripe price ID sent to the Worker. `AccountViewModel` adds a retry-on-401 pattern and surfaces the raw server error for diagnosability.
@@ -68,8 +70,8 @@ Features reflect actual app capabilities, not placeholder copy:
 - Target platform formatting
 - Full improvement history
 
-**Pro**
-- 2,000 improvements per month
+**Pro** *(ADR-034 supersedes the 2,000/mo cap below — Pro is now unlimited)*
+- 2,000 improvements per month → **Unlimited** (see ADR-034)
 - Everything in Free
 - Prioritized feature requests
 - Early access to new features
@@ -173,3 +175,4 @@ These are static HTTPS URLs that Stripe accepts. The app does not handle the red
 - [ADR-027: Supabase PostgreSQL over D1](027-supabase-postgres-over-d1.md)
 - [ADR-023: Supabase Auth strategy](023-supabase-auth-strategy.md)
 - [ADR-028: ES256 JWT verification](028-es256-jwt-verification.md)
+- [ADR-035: `.contentShape` for plain-button hit areas](035-contentshape-for-plain-button-hit-area.md) — generalises the hit-area fix first described in this ADR to the `PlanBillingToggle` segments

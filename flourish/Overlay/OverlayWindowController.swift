@@ -13,6 +13,13 @@ final class OverlayWindowController: NSWindowController {
     private var viewModel = OverlayViewModel()
     private let hostingController: NSHostingController<OverlayView>
 
+    // Captures the prompt text before dismiss() clears the draft,
+    // so it can be restored if the LLM call fails with monthlyLimitReached.
+    private var inFlightText: String = ""
+
+    // NSSound.play() is async — the object must be retained until playback completes.
+    private var tinkSound: NSSound?
+
     private init() {
         panel = OverlayPanel()
 
@@ -45,6 +52,11 @@ final class OverlayWindowController: NSWindowController {
     func show() {
         // CRITICAL: Capture the previous app BEFORE showing the panel
         PasteService.shared.capturePreviousApp()
+
+        // Brief chime on open — retained to survive async playback.
+        tinkSound = NSSound(named: "Tink")
+        tinkSound?.volume = 0.1
+        tinkSound?.play()
 
         // Reset the view model — loads any saved draft
         viewModel.reset()
@@ -84,6 +96,7 @@ final class OverlayWindowController: NSWindowController {
         viewModel.reset()
 
         if paste && !trimmed.isEmpty {
+            inFlightText = text
             LoaderWindowController.shared.show()
             Task {
                 await runLLM(text: text)
@@ -107,8 +120,9 @@ final class OverlayWindowController: NSWindowController {
                 model: model
             )
 
-            LoaderWindowController.shared.hide()
-            PasteService.shared.pasteText(response.improvedText)
+            // Paste into the previous app (also writes to clipboard) then show success.
+            let pasted = PasteService.shared.pasteText(response.improvedText)
+            LoaderWindowController.shared.showSuccess(pasted: pasted)
 
             // Persist to history
             let cost = ModelOption.estimateCost(
@@ -201,6 +215,13 @@ final class OverlayWindowController: NSWindowController {
     }
 
     private func showError(_ error: Error) {
+        if case LLMError.monthlyLimitReached = error {
+            // Restore the draft so the user can retry after upgrading.
+            viewModel.saveDraft(inFlightText)
+            LimitReachedWindowController.shared.show()
+            return
+        }
+
         let alert = NSAlert()
         alert.messageText = "flourish"
         alert.informativeText = error.localizedDescription

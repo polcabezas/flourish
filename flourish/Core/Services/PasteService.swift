@@ -3,13 +3,14 @@ import ApplicationServices
 
 // MARK: - Paste Service
 // Writes text to clipboard and simulates Cmd+V in the previously focused app.
+// The improved text is intentionally left in the clipboard after the operation
+// so the user can paste it manually if the automatic paste failed or was missed.
 
 final class PasteService {
     static let shared = PasteService()
     private init() {}
 
     private var previousApp: NSRunningApplication?
-    private var savedClipboardItems: [SavedPasteboardItem] = []
     // Prevents showing the system accessibility dialog more than once per launch.
     // macOS only updates TCC after the user toggles the switch in System Settings,
     // so re-prompting on every failed paste is disruptive and unhelpful.
@@ -24,7 +25,18 @@ final class PasteService {
 
     // MARK: - Paste
 
-    func pasteText(_ text: String) {
+    /// Writes `text` to the clipboard and, if accessibility permission is granted
+    /// and a previous app was captured, simulates Cmd+V into that app.
+    /// The improved text is always left in the clipboard after this call.
+    /// - Returns: `true` if Cmd+V was fired (paste attempted), `false` if only
+    ///   the clipboard was written (no permission or no previous app).
+    @discardableResult
+    func pasteText(_ text: String) -> Bool {
+        // Always write the improved text to the clipboard first so it is
+        // available regardless of whether the auto-paste succeeds.
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+
         guard checkAccessibilityPermission() else {
             if !hasPromptedThisLaunch {
                 hasPromptedThisLaunch = true
@@ -32,30 +44,58 @@ final class PasteService {
             } else {
                 showPermissionAlert()
             }
-            return
+            return false
         }
         // Permission is confirmed — reset so a future launch can prompt again if needed.
         hasPromptedThisLaunch = false
 
-        // 1. Save current clipboard
-        saveClipboard()
+        guard let targetApp = previousApp else {
+            return false
+        }
 
-        // 2. Write improved text to clipboard
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
+        // Check whether the previous app still has a focused text input before
+        // attempting the paste. If it doesn't, Cmd+V would just produce the
+        // system error sound. Since the overlay is a nonactivatingPanel, the
+        // previous app never lost focus so its AXFocusedUIElement is still valid.
+        guard hasFocusedTextInput(in: targetApp) else {
+            return false
+        }
 
-        // 3. Activate previous app
-        previousApp?.activate(options: .activateIgnoringOtherApps)
+        // Activate previous app, then simulate Cmd+V after it reactivates.
+        targetApp.activate(options: .activateIgnoringOtherApps)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+            self.simulateCmdV()
+        }
+        return true
+    }
 
-        // 4. Simulate Cmd+V after a delay for the app to reactivate
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
-            self?.simulateCmdV()
+    private func hasFocusedTextInput(in app: NSRunningApplication) -> Bool {
+        let axApp = AXUIElementCreateApplication(app.processIdentifier)
 
-            // 5. Restore original clipboard after paste completes
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                self?.restoreClipboard()
-            }
+        var focusedRef: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(
+            axApp, kAXFocusedUIElementAttribute as CFString, &focusedRef
+        ) == .success else { return false }
+
+        let focused = focusedRef as! AXUIElement
+
+        var roleRef: CFTypeRef?
+        AXUIElementCopyAttributeValue(focused, kAXRoleAttribute as CFString, &roleRef)
+        let role = roleRef as? String ?? ""
+
+        switch role {
+        case kAXTextFieldRole,   // AXTextField
+             kAXTextAreaRole,    // AXTextArea
+             "AXComboBox",
+             "AXSearchField":
+            return true
+        case "AXWebArea":
+            // Web content — check if the focused area is editable
+            var editableRef: CFTypeRef?
+            AXUIElementCopyAttributeValue(focused, kAXEditedAttribute as CFString, &editableRef)
+            return (editableRef as? Bool) ?? true  // default true: better to attempt
+        default:
+            return false
         }
     }
 
@@ -106,39 +146,4 @@ final class PasteService {
         keyDown?.post(tap: .cgAnnotatedSessionEventTap)
         keyUp?.post(tap: .cgAnnotatedSessionEventTap)
     }
-
-    private func saveClipboard() {
-        savedClipboardItems = []
-        let pasteboard = NSPasteboard.general
-        guard let items = pasteboard.pasteboardItems else { return }
-        for item in items {
-            var saved = SavedPasteboardItem()
-            for type in item.types {
-                if let data = item.data(forType: type) {
-                    saved.entries.append((type, data))
-                }
-            }
-            savedClipboardItems.append(saved)
-        }
-    }
-
-    private func restoreClipboard() {
-        guard !savedClipboardItems.isEmpty else { return }
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        let newItems: [NSPasteboardItem] = savedClipboardItems.map { saved in
-            let item = NSPasteboardItem()
-            for (type, data) in saved.entries {
-                item.setData(data, forType: type)
-            }
-            return item
-        }
-        pasteboard.writeObjects(newItems)
-    }
-}
-
-// MARK: - Saved Pasteboard Item
-
-private struct SavedPasteboardItem {
-    var entries: [(NSPasteboard.PasteboardType, Data)] = []
 }

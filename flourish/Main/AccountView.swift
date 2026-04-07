@@ -64,31 +64,39 @@ private struct AccountInfoSection: View {
             } else if let u = vm.usage {
                 VStack(alignment: .leading, spacing: FS.xs) {
                     HStack {
-                        Text("\(u.requestsThisMonth) / \(u.limit) requests this month")
-                            .font(.flourishMeta)
-                            .foregroundColor(.flourishTextSecondary)
+                        if let cap = u.limit {
+                            Text("\(u.requestsThisMonth) / \(cap) requests this month")
+                                .font(.flourishMeta)
+                                .foregroundColor(.flourishTextSecondary)
+                        } else {
+                            Text("Unlimited requests")
+                                .font(.flourishMeta)
+                                .foregroundColor(.flourishTextSecondary)
+                        }
                         Spacer()
                         Text("resets \(formattedReset(u.resetAt))")
                             .font(.flourishMeta)
                             .foregroundColor(.flourishTextTertiary)
                     }
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(Color.flourishSurfaceRaised)
-                                .frame(height: 4)
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(Color.flourishAccent)
-                                .frame(
-                                    width: geo.size.width * min(
-                                        CGFloat(u.requestsThisMonth) / max(CGFloat(u.limit), 1),
-                                        1.0
-                                    ),
-                                    height: 4
-                                )
+                    if let cap = u.limit {
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(Color.flourishSurfaceRaised)
+                                    .frame(height: 4)
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(Color.flourishAccent)
+                                    .frame(
+                                        width: geo.size.width * min(
+                                            CGFloat(u.requestsThisMonth) / max(CGFloat(cap), 1),
+                                            1.0
+                                        ),
+                                        height: 4
+                                    )
+                            }
                         }
+                        .frame(height: 4)
                     }
-                    .frame(height: 4)
                 }
             }
 
@@ -173,6 +181,7 @@ private struct PlanBillingToggle: View {
                             color: selected == period ? Color.black.opacity(0.06) : Color.clear,
                             radius: 3, x: 0, y: 1
                         )
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .pointerCursor()
@@ -256,7 +265,7 @@ private struct ProPlanColumn: View {
     @ObservedObject var vm: AccountViewModel
 
     private let features = [
-        "2,000 improvements per month",
+        "Unlimited improvements",
         "Everything in Free",
         "Prioritized feature requests",
         "Early access to new features",

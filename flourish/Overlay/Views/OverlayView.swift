@@ -10,20 +10,40 @@ struct OverlayView: View {
     @Default(.lastSelectedProfileId) private var selectedProfileId
     @Default(.targetPlatform) private var targetPlatform
     @FocusState private var inputFocused: Bool
+    @State private var placeholderIndex = 0
+
+    private static let placeholders = [
+        "Write your prompt…",
+        "What are you trying to say?",
+        "Rough thoughts welcome here…",
+        "Type it messy, we'll clean it up.",
+        "Describe what you need…",
+        "Start typing and let's improve it.",
+        "What do you want to communicate?",
+        "Paste or type something to improve…",
+        "No judgment, just type.",
+        "Your words, polished.",
+        "Brain dump away…",
+        "Even a half-baked idea works.",
+        "Just get it out. We'll handle the rest.",
+        "Write like nobody's watching.",
+        "Ramble if you must.",
+        "Good enough to start is good enough.",
+        "What's on your mind?",
+        "Say it however feels natural.",
+        "First drafts belong here.",
+        "Clarity is overrated — for now.",
+        "Start anywhere. We'll fix the order.",
+        "The messier, the better.",
+        "Thinking out loud? Perfect.",
+        "Something to say? Let's say it better.",
+        "Drop your thoughts, pick up a polished prompt.",
+    ]
 
     var body: some View {
         VStack(spacing: 0) {
             // MARK: Text Input Area
             ZStack(alignment: .topLeading) {
-                if viewModel.promptText.isEmpty {
-                    Text("Write your prompt…")
-                        .font(.flourishInput)
-                        .foregroundColor(.flourishTextSecondary)
-                        .padding(.horizontal, FS.overlayInputPaddingH)
-                        .padding(.top, FS.overlayInputPaddingV)
-                        .allowsHitTesting(false)
-                }
-
                 TextEditor(text: $viewModel.promptText)
                     .font(.flourishInput)
                     .foregroundColor(.flourishTextPrimary)
@@ -34,6 +54,15 @@ struct OverlayView: View {
                     .padding(.horizontal, FS.overlayInputPaddingH - 5)
                     .padding(.top, FS.overlayInputPaddingV)
                     .focused($inputFocused)
+
+                if viewModel.promptText.isEmpty {
+                    Text(Self.placeholders[placeholderIndex])
+                        .font(.flourishInput)
+                        .foregroundColor(.flourishTextSecondary.opacity(0.5))
+                        .padding(.horizontal, FS.overlayInputPaddingH)
+                        .padding(.top, FS.overlayInputPaddingV)
+                        .allowsHitTesting(false)
+                }
             }
             .frame(minHeight: FS.overlayInputMinHeight)
             .background(Color.flourishSurface)
@@ -67,8 +96,14 @@ struct OverlayView: View {
         .fixedSize(horizontal: true, vertical: false)
         .background(Color.flourishSurface)
         .clipShape(RoundedRectangle(cornerRadius: FS.radiusLg))
-        .onAppear { inputFocused = true }
-        .onChange(of: viewModel.focusTrigger) { _ in inputFocused = true }
+        .onAppear {
+            inputFocused = true
+            placeholderIndex = Int.random(in: 0..<Self.placeholders.count)
+        }
+        .onChange(of: viewModel.focusTrigger) { _ in
+            inputFocused = true
+            placeholderIndex = Int.random(in: 0..<Self.placeholders.count)
+        }
     }
 }
 

@@ -41,6 +41,13 @@ ADRs are **never modified after acceptance**. If a decision is reversed or super
 | [029](029-supabase-user-lifecycle-triggers.md) | Supabase database triggers for user lifecycle | Accepted |
 | [030](030-plans-billing-ui.md) | Plans and Billing UI — comparison grid in AccountView | Accepted |
 | [031](031-account-usage-realtime-refresh.md) | Event-driven usage refresh in AccountViewModel | Accepted |
+| [032](032-git-sync-before-dmg-build.md) | Git sync to `main` before DMG build | Accepted |
+| [033](033-limit-reached-popup-window.md) | Separate floating popup for monthly limit reached UI | Accepted |
+| [034](034-unlimited-pro-plan.md) | Unlimited improvements for the Pro plan | Accepted |
+| [035](035-contentshape-for-plain-button-hit-area.md) | `.contentShape` for plain-button hit areas | Accepted |
+| [036](036-rotating-overlay-placeholders.md) | Rotating playful placeholders in the overlay input | Accepted |
+| [037](037-loader-success-state-and-paste-detection.md) | Loader success state, AX-based paste detection, and fixed-frame NSHostingView | Accepted |
+| [038](038-build-script-version-source-of-truth.md) | `build-dmg.sh` as the single source of truth for the app version | Accepted |
 
 ---
 

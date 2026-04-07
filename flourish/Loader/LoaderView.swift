@@ -1,18 +1,47 @@
 import SwiftUI
 
+// MARK: - Loader State
+
+@MainActor
+final class LoaderState: ObservableObject {
+    enum Phase { case loading, success }
+    @Published var phase: Phase = .loading
+    @Published var successMessage: String = "Copied to clipboard"
+    /// Always kept in sync with the panel's frame width so SwiftUI reports a
+    /// stable preferred content size and NSHostingView never resizes the window.
+    @Published var width: CGFloat = FS.loaderWidth
+}
+
 // MARK: - Loader View
-// Three forest-green dots with staggered pulse animation inside a pill.
+// Loading: forest-green spinner inside a pill.
+// Success: checkmark + "Copied to clipboard" label inside the same pill.
 
 struct LoaderView: View {
+    @ObservedObject var state: LoaderState
+
     var body: some View {
-        HStack(spacing: FS.loaderDotSpacing) {
-            PulsingDot(delay: 0.00)
-            PulsingDot(delay: 0.18)
-            PulsingDot(delay: 0.36)
+        Group {
+            if state.phase == .success {
+                HStack(spacing: FS.xs) {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(Color.flourishAccent)
+                    Text(state.successMessage)
+                        .font(.flourishMeta)
+                        .foregroundColor(.flourishAccent)
+                }
+                .transition(.opacity.combined(with: .scale(scale: 0.92)))
+            } else {
+                SpinnerView()
+                    .transition(.opacity)
+            }
         }
+        .animation(.easeInOut(duration: 0.2), value: state.phase == .success)
         .padding(.horizontal, FS.lg)
         .padding(.vertical, FS.sm)
-        .frame(width: FS.loaderWidth, height: FS.loaderHeight)
+        // Both dimensions must be fixed so NSHostingView.updateAnimatedWindowSize
+        // always sees the same preferred size as the panel frame and never loops.
+        .frame(width: state.width, height: FS.loaderHeight)
         .background(
             Capsule()
                 .fill(Color.flourishSurface)
@@ -25,31 +54,19 @@ struct LoaderView: View {
     }
 }
 
-// MARK: - Pulsing Dot
+// MARK: - Spinner
 
-private struct PulsingDot: View {
-    let delay: Double
-    @State private var opacity: Double = 0.25
-
+private struct SpinnerView: View {
     var body: some View {
-        Circle()
-            .fill(Color.flourishAccent)
-            .frame(width: FS.loaderDotSize, height: FS.loaderDotSize)
-            .opacity(opacity)
-            .onAppear {
-                withAnimation(
-                    .easeInOut(duration: 0.55)
-                    .repeatForever(autoreverses: true)
-                    .delay(delay)
-                ) {
-                    opacity = 1.0
-                }
-            }
+        ProgressView()
+            .scaleEffect(0.45)
+            .frame(width: 16, height: 16)
+            .tint(Color.flourishAccent)
     }
 }
 
 #Preview {
-    LoaderView()
+    LoaderView(state: LoaderState())
         .frame(width: 200, height: 80)
         .background(Color.gray.opacity(0.2))
 }

@@ -212,7 +212,7 @@ A lightweight representation of the signed-in user, derived from the Supabase `S
 
 ```swift
 struct AuthUser {
-    let id: String      // Supabase user UUID (used as user_id in D1)
+    let id: String      // Supabase user UUID (used as user_id in user_subscriptions)
     let email: String   // User's email address
 }
 ```
@@ -225,23 +225,72 @@ struct AuthUser {
 
 **File:** `Main/AccountViewModel.swift`
 
-The decoded response from `GET /account/usage` on the Cloudflare Worker.
+The app-layer model populated from the `GET /account/usage` Worker response. (The private `UsageResponse: Decodable` struct in `AccountViewModel` handles decoding; `UsageInfo` is a clean domain type.)
 
 ```swift
-struct UsageInfo: Decodable {
-    let subscription: String    // "free" or "pro"
+struct UsageInfo {
+    let plan: String        // "free" or "pro"
     let requestsThisMonth: Int  // Counter since last reset
-    let limit: Int              // 30 for free, 2000 for pro
-    let resetAt: Date           // Start of next billing cycle (ISO-8601)
+    let limit: Int?             // 30 for free, nil for pro (unlimited)
+    let resetAt: String         // ISO-8601 date string: start of current billing period
 }
 ```
 
 | Field | Description |
 |-------|-------------|
-| `subscription` | Plan tier as a raw string from D1. `AccountView` maps to a display label ("Free" / "Pro") |
-| `requestsThisMonth` | Requests made since `resetAt`. Incremented by the Worker on each successful `/improve` call |
-| `limit` | Monthly request cap for the current plan |
-| `resetAt` | When `requestsThisMonth` will be reset to 0. Lazy — reset only occurs when a new request arrives after this date |
+| `plan` | Plan tier as a raw string from Supabase. `AccountView` renders a `PlanBadge` from this value |
+| `requestsThisMonth` | Requests made since `resetAt`. Incremented atomically by the Worker via `rpc/increment_user_requests` on each successful `/improve` call |
+| `limit` | Monthly request cap: `30` for free, `nil` for pro (unlimited). `AccountView` shows a progress bar when non-nil and "Unlimited requests" when nil |
+| `resetAt` | ISO-8601 date string (`YYYY-MM-DD`) of the **start** of the current billing period (e.g. `"2026-04-01"`). `AccountViewModel` adds one calendar month before displaying to the user ("resets May 1") |
+
+---
+
+## LimitReachedViewModel
+
+**File:** `Overlay/Views/LimitReachedView.swift`
+
+Drives the auto-dismiss countdown in `LimitReachedPopupView`. Singleton, `@MainActor`.
+
+```swift
+@MainActor
+final class LimitReachedViewModel: ObservableObject {
+    static let shared = LimitReachedViewModel()
+    static let totalTime: Double = 12.0
+
+    @Published var timeRemaining: Double = LimitReachedViewModel.totalTime
+
+    func reset() { timeRemaining = Self.totalTime }
+}
+```
+
+`LimitReachedWindowController.shared.show()` calls `reset()` before presenting the popup. `LimitReachedPopupView` subscribes to a 0.05-second `Timer.publish` and decrements `timeRemaining` on each tick, driving a draining circular progress ring and auto-dismissing at zero.
+
+---
+
+## AccountViewModel
+
+**File:** `Main/AccountViewModel.swift`
+
+Coordinates all account-related async work for `AccountView`. `@MainActor ObservableObject`.
+
+```swift
+@MainActor
+final class AccountViewModel: ObservableObject {
+    @Published var usage: UsageInfo? = nil
+    @Published var isLoadingUsage = false
+    @Published var billingError: String? = nil
+}
+```
+
+| Property | Description |
+|----------|-------------|
+| `usage` | Latest `UsageInfo` fetched from `GET /account/usage`; `nil` until first load |
+| `isLoadingUsage` | True while the usage network call is in flight |
+| `billingError` | Last checkout/portal error string, shown inline in `BillingSection` |
+
+Refreshes usage automatically on two events:
+- `flourishDidImprovePrompt` notification (posted after each successful improvement)
+- `NSApplication.didBecomeActiveNotification` (catches plan changes made outside the app, e.g. via Stripe portal)
 
 ---
 
@@ -249,11 +298,11 @@ struct UsageInfo: Decodable {
 
 **File:** `Core/Services/flourishProxyService.swift` (part of `LLMError`)
 
-Represents the 429 response returned by the Worker when a user exceeds their monthly request limit.
+Represents the 429 response returned by the Worker when a free-plan user exceeds their monthly request limit.
 
 ```swift
 // HTTP 429 response body from Worker:
-// { "error": "monthly_limit_reached" }
+// { "error": "monthly_limit_reached", "plan": "free", "limit": 30 }
 
 // Mapped to:
 enum LLMError: LocalizedError {
@@ -262,7 +311,35 @@ enum LLMError: LocalizedError {
 }
 ```
 
-`flourishProxyService` inspects the HTTP status code and JSON body. When `status == 429` and `error == "monthly_limit_reached"`, it throws `LLMError.monthlyLimitReached`. The overlay displays a user-facing message directing the user to the Account section to upgrade.
+`flourishProxyService` inspects the HTTP status code and JSON body. When `status == 429` and `error == "monthly_limit_reached"`, it throws `LLMError.monthlyLimitReached`. `OverlayWindowController.showError()` handles this case by calling `LimitReachedWindowController.shared.show()` — a bottom-center floating popup with an Upgrade CTA and a 12-second auto-dismiss. Pro users never receive this error (`PLAN_LIMITS.pro = null`). See ADR-033 and ADR-034.
+
+---
+
+## LoaderState
+
+**File:** `Loader/LoaderView.swift`
+
+Observable state object shared between `LoaderView` and `LoaderWindowController`. `@MainActor ObservableObject`.
+
+```swift
+@MainActor
+final class LoaderState: ObservableObject {
+    enum Phase { case loading, success }
+    @Published var phase: Phase = .loading
+    @Published var successMessage: String = "Copied to clipboard"
+    @Published var width: CGFloat = FS.loaderWidth
+}
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `phase` | `Phase` | `.loading` shows a `ProgressView()` spinner tinted `flourishAccent`; `.success` shows a checkmark + `successMessage` |
+| `successMessage` | `String` | `"Pasted"` when Cmd+V was fired into a confirmed focused text input; `"Copied to clipboard"` otherwise |
+| `width` | `CGFloat` | Current pill width in points. Always kept in sync with the panel's `NSWindow` frame so `NSHostingView` reports a stable preferred content size and never triggers the `updateAnimatedWindowSize` loop. Defaults to `FS.loaderWidth` (80 pt) during loading; `LoaderWindowController` computes the success message width at runtime and sets this before transitioning to `.success` |
+
+`LoaderWindowController.showSuccess(pasted:)` sets all three properties together before calling `applyFrame(width:)`, ensuring SwiftUI renders the success view inside the correct frame on the very first layout pass.
+
+See [ADR-037](../adr/037-loader-success-state-and-paste-detection.md) for the rationale behind the fixed-frame pattern and the contextual message.
 
 ---
 
@@ -273,4 +350,7 @@ enum LLMError: LocalizedError {
 - [App Settings Reference](app-settings.md)
 - [Supported Models Reference](supported-models.md)
 - [ADR-023: Supabase Auth Strategy](../adr/023-supabase-auth-strategy.md)
-- [ADR-025: Cloudflare D1 Usage Tracking](../adr/025-cloudflare-d1-usage-tracking.md)
+- [ADR-027: Supabase PostgreSQL over D1](../adr/027-supabase-postgres-over-d1.md)
+- [ADR-033: Limit Reached Popup](../adr/033-limit-reached-popup-window.md)
+- [ADR-034: Unlimited Pro Plan](../adr/034-unlimited-pro-plan.md)
+- [ADR-037: Loader success state and paste detection](../adr/037-loader-success-state-and-paste-detection.md)

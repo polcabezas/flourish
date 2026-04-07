@@ -110,6 +110,7 @@ enum FS {
 - **Input height**: 56pt minimum, 200pt maximum (auto-expands with content)
 - **Positioned**: centered horizontally and vertically on screen
 - **Toolbar**: below the input, separated by a `Divider`
+- **Input placeholder**: rotating pool of 25 playful strings; `.flourishInput` font, `flourishTextSecondary.opacity(0.5)` — dimmer than body text to stay unobtrusive. See [ADR-036](../adr/036-rotating-overlay-placeholders.md).
 - **Hints row**: below the toolbar — `↑↓ history · ↩ improve · esc close` in `meta` font, `textSecondary` color
 
 ---
@@ -125,15 +126,13 @@ enum FS {
 
 ## Loader Panel
 
-- **Size**: 80 × 30pt
+- **Default size**: 80 × 30pt (loading phase); width expands dynamically for the success phase
 - **Position**: bottom-center of the primary screen
-- **Content**: 3 dots, 6pt diameter, `textSecondary` color
-- **Animation**: staggered opacity pulse
-  - Dot 1: starts at 0s
-  - Dot 2: starts at 0.18s
-  - Dot 3: starts at 0.36s
-  - Duration per dot: 0.55s
-  - Eases in/out
+- **Phases**:
+  - **Loading** (`LoaderState.phase == .loading`): a `ProgressView()` spinner scaled to 45%, tinted `flourishAccent` green
+  - **Success** (`LoaderState.phase == .success`): `flourishAccent` checkmark SF symbol (size 11, semibold) + contextual message in `meta` font. Message is `"Pasted"` if Cmd+V was fired into a confirmed text input, or `"Copied to clipboard"` otherwise. The pill width is computed at runtime from `NSFont.systemFont(ofSize: 11)` to fit the message exactly. Auto-hides after 1.5 s.
+- **Fixed frame**: `LoaderView` always sizes itself to `state.width × FS.loaderHeight` so `NSHostingView` never triggers the `updateAnimatedWindowSize` layout loop. See [ADR-037](../adr/037-loader-success-state-and-paste-detection.md).
+- **Background**: `flourishSurface` capsule with a subtle drop shadow
 
 ---
 
@@ -160,6 +159,25 @@ Defined in `flourishLogoView.swift` as a custom SwiftUI `Shape`.
 
 All hover states use `@State private var isHovered: Bool` with `.onHover { isHovered = $0 }`.  
 All interactive views apply `.pointerCursor()` (a custom `View` extension or `NSCursor.pointingHand`).
+
+### Plain-button hit areas
+
+When using `.buttonStyle(.plain)` with a padded label, SwiftUI's hit-test region matches only the label's content (e.g. the `Text`), not the padding or background. Add `.contentShape(Rectangle())` as the **last modifier inside the label** to expand the hit-test region to the full padded frame:
+
+```swift
+Button { action() } label: {
+    Text("Label")
+        .padding(.horizontal, FS.xxl)
+        .padding(.vertical, FS.sm)
+        .background(Color.flourishButtonBg)
+        .clipShape(RoundedRectangle(cornerRadius: FS.radiusSm))
+        .contentShape(Rectangle())   // ← must be last, inside the label
+}
+.buttonStyle(.plain)
+.pointerCursor()
+```
+
+Applying `.contentShape` on the outer `Button` view (after `.buttonStyle(.plain)`) has no effect. See [ADR-035](../adr/035-contentshape-for-plain-button-hit-area.md) for full context and rationale.
 
 ---
 

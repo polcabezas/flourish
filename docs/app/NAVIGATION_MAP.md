@@ -36,13 +36,22 @@
 ### Founder (managing billing and subscriptions)
 1. [ADR-026: Stripe Billing via Worker](adr/026-stripe-billing-via-worker.md)
 2. [How to Manage Your Account](how-to/manage-account.md) — user-facing billing flows
-3. [ADR-025: Cloudflare D1 Usage Tracking](adr/025-cloudflare-d1-usage-tracking.md)
-4. [ADR-031: Event-Driven Usage Refresh in AccountViewModel](adr/031-account-usage-realtime-refresh.md)
-5. [Deploy or Update the Worker](how-to/deploy-worker.md)
+3. [ADR-034: Unlimited improvements for the Pro plan](adr/034-unlimited-pro-plan.md) — Pro has no monthly cap
+4. [ADR-033: Separate floating popup for monthly limit reached UI](adr/033-limit-reached-popup-window.md) — Free plan UX on limit hit
+5. [ADR-031: Event-Driven Usage Refresh in AccountViewModel](adr/031-account-usage-realtime-refresh.md)
+6. [Deploy or Update the Worker](how-to/deploy-worker.md)
+
+### Founder (building and distributing)
+1. [Build and Distribute](how-to/build-and-distribute.md)
+2. [ADR-032: Git sync to `main` before DMG build](adr/032-git-sync-before-dmg-build.md) — reproducible DMG builds from clean `main`
+3. [ADR-008: Ad-hoc code signing](adr/008-adhoc-signing.md)
 
 ### Designer (working on UI)
 1. [Design System](reference/design-system.md)
 2. [Architecture Overview](reference/architecture-overview.md) → UI layer section
+3. [ADR-035: `.contentShape` for plain-button hit areas](adr/035-contentshape-for-plain-button-hit-area.md) — required pattern for `.buttonStyle(.plain)` with padding
+4. [ADR-036: Rotating overlay placeholders](adr/036-rotating-overlay-placeholders.md) — copy pool, ZStack placement, and opacity rationale
+5. [ADR-037: Loader success state and paste detection](adr/037-loader-success-state-and-paste-detection.md) — spinner → checkmark transition, fixed-frame NSHostingView pattern
 
 ## Diataxis Cross-Links
 
@@ -92,8 +101,23 @@ how-to/deploy-worker
 how-to/manage-account
   ├── → adr/023-supabase-auth-strategy
   ├── → adr/024-auth-gated-ui
-  ├── → adr/025-cloudflare-d1-usage-tracking
   ├── → adr/026-stripe-billing-via-worker
+  ├── → adr/027-supabase-postgres-over-d1
   ├── → adr/031-account-usage-realtime-refresh
+  ├── → adr/033-limit-reached-popup-window
+  ├── → adr/034-unlimited-pro-plan
   └── → reference/data-models
+
+reference/design-system (Interactive State Conventions)
+  ├── → adr/030-plans-billing-ui        (original .contentShape fix for Upgrade button)
+  ├── → adr/035-contentshape-for-plain-button-hit-area  (canonical pattern for .plain buttons)
+  └── → adr/036-rotating-overlay-placeholders  (copy pool, ZStack placement, opacity rationale)
+
+how-to/build-and-distribute
+  └── → adr/032-git-sync-before-dmg-build  (clean main required before DMG build)
+
+explanation/paste-automation
+  ├── → adr/011-paste-capture-timing
+  ├── → adr/037-loader-success-state-and-paste-detection  (AX check, clipboard-retain, success pill)
+  └── → adr/001-non-activating-panel
 ```

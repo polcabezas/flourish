@@ -41,23 +41,34 @@ Content-Type: application/json
 
 ```json
 {
-  "prompt": "Make this better: hello world",
-  "system": "You are a writing assistant. Improve the text.",
-  "model": "llama-3.1-8b-instant"
+  "messages": [
+    { "role": "system", "content": "You are a writing assistant. Improve the text." },
+    { "role": "user", "content": "Make this better: hello world" }
+  ]
 }
 ```
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `prompt` | string | Yes | The user's input text to improve |
-| `system` | string | Yes | System prompt built by `BasePrompt.build(guidelines:targetPlatform:)` |
-| `model` | string | No | Model override. Defaults to `ACTIVE_MODEL` in `wrangler.toml` |
+| `messages` | array | Yes | OpenAI-compatible chat messages array. Built by `flourishProxyService` from the system prompt (`BasePrompt.build(guidelines:targetPlatform:)`) and the user's input text. The active model is controlled server-side via `ACTIVE_MODEL` in `wrangler.toml` — the client does not send a model override. |
 
 ### Response — 200 OK
 
+The Worker passes through the raw response from the upstream LLM provider unchanged, adding only an `X-flourish-Provider` header. Both Groq and OpenRouter use the OpenAI-compatible chat completions format:
+
 ```json
 {
-  "improved": "Hello, world! Welcome to a better greeting.",
+  "id": "chatcmpl-...",
+  "object": "chat.completion",
+  "choices": [
+    {
+      "message": {
+        "role": "assistant",
+        "content": "Hello, world! Welcome to a better greeting."
+      },
+      "finish_reason": "stop"
+    }
+  ],
   "model": "llama-3.1-8b-instant",
   "usage": {
     "prompt_tokens": 42,
@@ -67,22 +78,26 @@ Content-Type: application/json
 }
 ```
 
+`flourishProxyService` reads `choices[0].message.content` for the improved text and `usage` for token counts.
+
 ### Response — 429 Too Many Requests (monthly limit reached)
 
 ```json
 {
-  "error": "monthly_limit_reached"
+  "error": "monthly_limit_reached",
+  "plan": "free",
+  "limit": 30
 }
 ```
 
-Handled by `FlourishProxyService` as `LLMError.monthlyLimitReached`. Displayed to the user in the overlay.
+Handled by `flourishProxyService` as `LLMError.monthlyLimitReached`. Triggers `LimitReachedWindowController.shared.show()` — a bottom-center floating popup with an upgrade CTA and a 12-second auto-dismiss timer. See ADR-033.
 
 ### Plan limits
 
 | Plan | Monthly limit |
 |------|--------------|
 | `free` | 30 requests |
-| `pro` | 2,000 requests |
+| `pro` | Unlimited (`PLAN_LIMITS.pro = null` — no 429 is ever returned for Pro users) |
 
 Monthly counters reset lazily: the Worker checks whether the current date has passed `reset_at + 1 month`. If so, it resets `requests_this_month` to 0 and updates `reset_at` before processing the request.
 
@@ -146,7 +161,7 @@ Authorization: Bearer <jwt>
 |-------|------|-------------|
 | `plan` | string | `"free"` or `"pro"` |
 | `requests_this_month` | integer | Requests made in the current billing period |
-| `limit` | integer | Monthly limit for the current plan (30 or 2000) |
+| `limit` | integer \| null | Monthly request cap for the plan: `30` for free, `null` for pro (unlimited) |
 | `reset_at` | string | ISO-8601 date (`YYYY-MM-DD`) of the **start** of the current billing period |
 
 Note: `reset_at` stores the period start, not the next reset. `AccountViewModel` adds one month before displaying to the user (e.g. `"2026-04-01"` → shown as "resets May 1").
@@ -242,9 +257,9 @@ This route does **not** use JWT authentication. It verifies the `Stripe-Signatur
 
 | Event | Action |
 |-------|--------|
-| `customer.subscription.updated` | Sets `subscription` to `'pro'` if status is `active` or `trialing`, otherwise `'free'` |
+| `customer.subscription.updated` | Sets `subscription` to `'pro'` if status is `active`, otherwise `'free'` |
 | `customer.subscription.deleted` | Sets `subscription` to `'free'` |
-| `invoice.paid` | No-op (acknowledged) |
+| `invoice.paid` | Resets `requests_this_month` to `0` and updates `reset_at` to the current month start |
 
 ### Request
 

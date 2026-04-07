@@ -53,15 +53,22 @@ The `AuthService.authStateChanges` stream is observed in `AppDelegate`. On the f
 
 ## SignInWindowController Design
 
-`SignInWindowController` is a `@MainActor NSWindowController` singleton (`static let shared`). It owns a private `NSPanel` (320pt wide, compact height) and hosts `SignInView` as its content view controller.
+`SignInWindowController` is a `@MainActor NSWindowController` singleton (`static let shared`). It owns a private `NSPanel` (320 pt wide) with `.titled, .closable, .fullSizeContentView, .nonactivatingPanel` style mask and `titlebarAppearsTransparent = true`. The content extends behind the transparent title bar.
 
-`SignInView` is a SwiftUI view providing:
-- The flourish logo
+`SignInView` is a SwiftUI view with two sections:
+
+**Header — sage green banner**  
+A full-width `ZStack` with `Color(hex: "#C8DFC0")` background and the `flourishWordmarkView` logo in `Color(hex: "#3D6135")`. `.ignoresSafeArea(edges: .top)` is applied to the ZStack so the green fills flush to the top of the window behind the traffic-light buttons. The logo uses `.offset(y: 14)` (half the ~28 pt title bar height) to appear visually centered in the green area below the traffic lights. Minimum header height: 100 pt.
+
+This header mirrors the right panel of `LimitReachedPopupView` — same background color, same logo, same design language.
+
+**Form**  
 - Email and password `TextField`/`SecureField` inputs
 - Sign In / Sign Up toggle
+- Primary action button (`flourishButtonBg`, `cornerRadius(FS.radiusSm)`)
 - Google OAuth button (uses `GoogleLogo` image asset)
 
-The panel is centered on screen via `window?.center()` in `show()` and dismissed via `orderOut(_:)` in `hide()`.
+The panel is positioned at screen center (shifted slightly above mid, matching the overlay) in `show()` and dismissed via `orderOut(_:)` in `hide()`.
 
 `AuthService` drives the transition: when `authStateChanges` emits `.signedIn`, `SignInWindowController.shared.hide()` is called and the main window becomes available. When `.signedOut` is emitted, the main window is closed and `SignInWindowController.shared.show()` is called.
 

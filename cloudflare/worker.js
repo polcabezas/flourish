@@ -22,7 +22,7 @@
  *   ACTIVE_MODEL    — e.g. "llama-3.1-8b-instant"
  */
 
-const PLAN_LIMITS = { free: 30, pro: 2000 };
+const PLAN_LIMITS = { free: 30, pro: null }; // null = unlimited
 
 // ---------------------------------------------------------------------------
 // Router
@@ -69,7 +69,7 @@ async function handleImprove(request, env) {
   row = await maybeResetMonth(env, userId, row);
 
   const limit = PLAN_LIMITS[row.subscription] ?? PLAN_LIMITS.free;
-  if (row.requests_this_month >= limit)
+  if (limit !== null && row.requests_this_month >= limit)
     return json({ error: "monthly_limit_reached", plan: row.subscription, limit }, 429);
 
   let body;

@@ -68,6 +68,7 @@ targets:
           - "flourish.entitlements"
     resources:
       - path: flourish/Assets.xcassets
+      - path: flourish/Sounds
     dependencies:
       - package: KeyboardShortcuts
         product: KeyboardShortcuts

@@ -38,7 +38,7 @@ The Account view shows:
 - The date when your usage counter resets
 
 **Free plan limit:** 30 requests/month  
-**Pro plan limit:** 2000 requests/month
+**Pro plan limit:** Unlimited
 
 ---
 
@@ -86,14 +86,14 @@ After cancelling, your plan reverts to Free at the end of the current billing pe
 
 ## Troubleshooting
 
-**"Monthly limit reached" error in the overlay**  
-You have used all requests for this month on the Free plan. Upgrade to Pro for 2000 requests/month, or wait for your counter to reset (the reset date is shown in the Account section).
+**"Monthly limit reached" popup appears**  
+When a Free plan user exhausts their 30 monthly requests, a floating popup appears at the bottom-center of your screen. The popup shows an Upgrade CTA on the left and the Flourish wordmark on the right. It auto-dismisses after 12 seconds (a draining ring in the top-right corner shows the countdown). Click **Upgrade** to open the Account section, or click the X button to dismiss immediately. Upgrade to Pro for unlimited requests, or wait for your counter to reset (the reset date is shown in the Account section).
 
 **Google sign-in does not redirect back to the app**  
 Ensure `flourish` is registered as a custom URL scheme on your Mac. This happens automatically when the app is installed. If the browser shows an error, try signing in with email and password instead.
 
 **Account section shows stale usage data**  
-The usage counter is fetched when the Account section loads. Navigate away and back to trigger a refresh.
+The usage counter refreshes automatically after every successful improvement and whenever the app comes to the foreground. If the counter looks stale, bring the app to the foreground (click the menu bar icon) to trigger a refresh.
 
 ---
 
@@ -101,6 +101,8 @@ The usage counter is fetched when the Account section loads. Navigate away and b
 
 - [ADR-023: Supabase Auth Strategy](../adr/023-supabase-auth-strategy.md)
 - [ADR-024: Auth-gated UI](../adr/024-auth-gated-ui.md)
-- [ADR-027: Supabase PostgreSQL over D1](../adr/027-supabase-postgres-over-d1.md)
 - [ADR-026: Stripe Billing via Worker](../adr/026-stripe-billing-via-worker.md)
+- [ADR-027: Supabase PostgreSQL over D1](../adr/027-supabase-postgres-over-d1.md)
+- [ADR-033: Separate floating popup for monthly limit reached UI](../adr/033-limit-reached-popup-window.md)
+- [ADR-034: Unlimited improvements for the Pro plan](../adr/034-unlimited-pro-plan.md)
 - [Data Models Reference — UsageInfo](../reference/data-models.md#usageinfo)

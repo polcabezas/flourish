@@ -59,3 +59,6 @@ flourish-context.txt
 
 # Secrets — never commit real proxy credentials
 flourish/Config/Secrets.xcconfig
+
+# Cloudflare Wrangler cache (local state, never tracked)
+cloudflare/.wrangler/
